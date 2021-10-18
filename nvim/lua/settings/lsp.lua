@@ -13,8 +13,9 @@ M.setup = function()
     capabilities = capabilities,
   })
 
-  Metals_config = require("metals").bare_config
+  Metals_config = require("metals").bare_config()
   Metals_config.settings = {
+    sbtScript = "sbtn",
     showImplicitArguments = true,
     showInferredType = true,
     excludedPackages = {

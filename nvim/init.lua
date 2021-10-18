@@ -14,21 +14,9 @@ require("settings.functions")
 require("settings.compe").setup()
 require("settings.telescope").setup()
 require("settings.lsp").setup()
+require("settings.zeta-note").setup()
 
 require("settings.galaxyline").setup()
--- require("nvim-autopairs").setup()
-
--- require("nvim-treesitter.configs").setup({
---   playground = { enable = true },
---   query_linter = {
---     enable = true,
---     use_virtual_text = true,
---     lint_events = { "BufWrite", "CursorHold" },
---   },
---   ensure_installed = "maintained",
---   highlight = { enable = true },
--- })
-
 require("lspsaga").init_lsp_saga({
   server_filetype_map = { metals = { "sbt", "scala" } },
   code_action_prompt = { virtual_text = false },
@@ -46,7 +34,8 @@ g["vim_markdown_conceal"] = 0
 g["vim_markdown_conceal_code_blocks"] = 0
 
 -- nvim-metals
--- g["metals_server_version"] = "0.10.2+66-691c584f-SNAPSHOT"
+-- g["metals_server_version"] = "0.10.7+86-1ad113da-SNAPSHOT" 
+-- g["metals_server_version"] = "0.10.8-SNAPSHOT"
 
 ----------------------------------
 -- OPTIONS -----------------------
@@ -84,8 +73,6 @@ opt("b", "fileformat", "unix")
 
 -- MAPPINGS -----------------------
 -- insert-mode mappings
-map("i", "jj", "<ESC>")
-
 map("n", "<leader>n", [[<cmd>lua RELOAD("settings.functions").toggle_nums()<CR>]])
 
 -- normal-mode mappings
@@ -105,11 +92,17 @@ map("n", "gi", [[<cmd>lua vim.lsp.buf.implementation()<CR>]])
 map("n", "gr", [[<cmd>lua vim.lsp.buf.references()<CR>]])
 map("n", "gds", [[<cmd>lua require"telescope.builtin".lsp_document_symbols()<CR>]])
 map("n", "gws", [[<cmd>lua require"settings.telescope".lsp_workspace_symbols()<CR>]])
+-- map("n", "<leader>rn", [[<cmd>lua vim.lsp.buf.rename()<CR>]])
+-- map("n", "<leader>ca", [[<cmd>lua vim.lsp.buf.code_action()<CR>]])
+-- map("n", "<leader>tt", [[<cmd>lua require("metals.tvp").toggle_tree_view()<CR>]])
+-- map("n", "<leader>tr", [[<cmd>lua require("metals.tvp").reveal_in_tree()<CR>]])
 map("n", "<leader>rn", [[<cmd>lua require"lspsaga.rename".rename()<CR>]])
+map("n", "<leader>fu", [[<cmd>lua require"lspsaga.provider".lsp_finder()<CR>]])
 map("n", "<leader>ca", [[<cmd>lua require"lspsaga.codeaction".code_action()<CR>]])
 map("v", "<leader>ca", [[<cmd>lua require"lspsaga.codeaction".range_code_action()<CR>]])
 map("n", "<leader>ws", [[<cmd>lua require"metals".worksheet_hover()<CR>]])
 map("n", "<leader>mc", [[<cmd>lua require("telescope").extensions.metals.commands()<CR>]])
+map("n", "<leader>fb", [[<cmd>lua require"telescope.builtin".file_browser()<CR>]])
 map("n", "<leader>a", [[<cmd>lua require"metals".open_all_diagnostics()<CR>]])
 map("n", "<leader>d", [[<cmd>lua vim.lsp.diagnostic.set_loclist()<CR>]]) -- buffer diagnostics only
 map("n", "]c", [[<cmd>lua require"lspsaga.diagnostic".lsp_jump_diagnostic_next()<CR>]])
@@ -162,6 +155,7 @@ cmd([[autocmd BufReadPost,BufNewFile *.md,*.txt,COMMIT_EDITMSG set wrap linebrea
 cmd([[autocmd BufReadPost,BufNewFile .html,*.txt,*.md,*.adoc set spell spelllang=en_us]])
 cmd([[autocmd TermOpen * startinsert]])
 
+g["onedark_style"] = "cool"
 cmd("colorscheme onedark")
 -- TODO make sure this works later
 -- TODO I can't get this to work as expected
@@ -171,17 +165,16 @@ cmd([[highlight LspDiagnosticsUnderlineWarning guifg=None]])
 -- LSP
 cmd([[augroup lsp]])
 cmd([[autocmd!]])
-cmd([[autocmd FileType scala setlocal omnifunc=v:lua.vim.lsp.omnifunc]])
+cmd([[autocmd FileType scala,sbt setlocal omnifunc=v:lua.vim.lsp.omnifunc]])
 cmd([[autocmd FileType scala,sbt lua require("metals").initialize_or_attach(Metals_config)]])
 cmd([[augroup end]])
 
 -- Needed to esnure float background doesn't get odd highlighting
 -- https://github.com/joshdick/onedark.vim#onedarkset_highlight
-cmd([[augroup colorset]])
-cmd([[autocmd!]])
-cmd([[autocmd ColorScheme * call onedark#set_highlight("Normal", { "fg": { "gui": "#ABB2BF", "cterm": "145", "cterm16" : "7" } })]])
-cmd([[augroup END]])
-
+-- cmd([[augroup colorset]])
+-- cmd([[autocmd!]])
+-- cmd([[autocmd ColorScheme * call onedark#set_highlight("Normal", { "fg": { "gui": "#ABB2BF", "cterm": "145", "cterm16" : "7" } })]])
+-- cmd([[augroup END]])
 
 ----------------------------------
 -- LSP Settings ------------------
