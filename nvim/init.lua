@@ -34,7 +34,7 @@ g["vim_markdown_conceal"] = 0
 g["vim_markdown_conceal_code_blocks"] = 0
 
 -- nvim-metals
--- g["metals_server_version"] = "0.10.7+86-1ad113da-SNAPSHOT" 
+g["metals_server_version"] = "0.10.7+153-c34ab1aa-SNAPSHOT"
 -- g["metals_server_version"] = "0.10.8-SNAPSHOT"
 
 ----------------------------------
