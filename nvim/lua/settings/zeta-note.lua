@@ -3,7 +3,7 @@ local M = {}
 
 M.setup = function()
   require'lspconfig'.zeta_note.setup({
-      cmd = {getenv("HOME") .. "/.tools/zeta-note"}
+      cmd = {os.getenv("HOME") .. "/.tools/zeta-note"}
   })
 end
 
