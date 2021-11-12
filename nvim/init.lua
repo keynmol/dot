@@ -22,6 +22,11 @@ require("lspsaga").init_lsp_saga({
   code_action_prompt = { virtual_text = false },
 })
 
+require("indent_blankline").setup {
+    char = "|",
+    buftype_exclude = {"terminal"}
+}
+
 ----------------------------------
 -- VARIABLES ---------------------
 ----------------------------------
@@ -34,8 +39,7 @@ g["vim_markdown_conceal"] = 0
 g["vim_markdown_conceal_code_blocks"] = 0
 
 -- nvim-metals
-g["metals_server_version"] = "0.10.7+153-c34ab1aa-SNAPSHOT"
--- g["metals_server_version"] = "0.10.8-SNAPSHOT"
+g["metals_server_version"] = "0.10.9+30-f4bd2700-SNAPSHOT"
 
 ----------------------------------
 -- OPTIONS -----------------------
