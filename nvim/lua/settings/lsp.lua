@@ -1,7 +1,7 @@
 local M = {}
 
 M.setup = function()
-  local shared_diagnostic_settings = vim.lsp.with(vim.lsp.diagnostic.on_publish_diagnostics, { virtual_text = false })
+  local shared_diagnostic_settings = vim.lsp.with(vim.lsp.diagnostic.on_publish_diagnostics, { virtual_text = true })
   local lsp_config = require("lspconfig")
   local capabilities = vim.lsp.protocol.make_client_capabilities()
   capabilities.textDocument.completion.completionItem.snippetSupport = true
@@ -22,7 +22,6 @@ M.setup = function()
       "com.github.swagger.akka.javadsl",
       "akka.stream.javadsl",
     },
-    --fallbackScalaVersion = "2.13.5"
   }
 
   Metals_config.init_options.statusBarProvider = "on"
@@ -61,19 +60,18 @@ M.setup = function()
   end
 
 
-  lsp_config.dockerls.setup({})
-  lsp_config.html.setup({})
-  lsp_config.jsonls.setup({
-    commands = {
-      Format = {
-        function()
-          vim.lsp.buf.range_formatting({}, { 0, 0 }, { vim.fn.line("$"), 0 })
-        end,
-      },
-    },
-  })
+  -- lsp_config.html.setup({})
+  -- lsp_config.jsonls.setup({
+  --   commands = {
+  --     Format = {
+  --       function()
+  --         vim.lsp.buf.range_formatting({}, { 0, 0 }, { vim.fn.line("$"), 0 })
+  --       end,
+  --     },
+  --   },
+  -- })
 
-  lsp_config.yamlls.setup({})
+  -- lsp_config.yamlls.setup({})
 
 
   -- Uncomment for trace logs from neovim

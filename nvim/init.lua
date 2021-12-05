@@ -11,7 +11,7 @@ local opt = f.opt
 cmd([[packadd packer.nvim]])
 require("plugins")
 require("settings.functions")
-require("settings.compe").setup()
+require("settings.cmp").setup()
 require("settings.telescope").setup()
 require("settings.lsp").setup()
 require("settings.zeta-note").setup()
@@ -26,6 +26,20 @@ require("indent_blankline").setup {
     char = "|",
     buftype_exclude = {"terminal"}
 }
+require'nvim-treesitter.configs'.setup {
+  ensure_installed = "maintained", -- one of "all", "maintained" (parsers with maintainers), or a list of languages
+  sync_install = false, -- install languages synchronously (only applied to `ensure_installed`)
+  ignore_install = { "javascript" }, -- List of parsers to ignore installing
+  highlight = {
+    enable = true,              -- false will disable the whole extension
+    -- disable = { "c", "rust" },  -- list of language that will be disabled
+    -- Setting this to true will run `:h syntax` and tree-sitter at the same time.
+    -- Set this to `true` if you depend on 'syntax' being enabled (like for indentation).
+    -- Using this option may slow down your editor, and you may see some duplicate highlights.
+    -- Instead of true it can also be a list of languages
+    additional_vim_regex_highlighting = false,
+  },
+}
 
 ----------------------------------
 -- VARIABLES ---------------------
@@ -39,7 +53,7 @@ g["vim_markdown_conceal"] = 0
 g["vim_markdown_conceal_code_blocks"] = 0
 
 -- nvim-metals
-g["metals_server_version"] = "0.10.9+30-f4bd2700-SNAPSHOT"
+g["metals_server_version"] = "0.10.9+126-14672630-SNAPSHOT"
 
 ----------------------------------
 -- OPTIONS -----------------------
@@ -116,7 +130,7 @@ map("n", "<leader>ln", [[<cmd>lua vim.lsp.diagnostic.get_line_diagnostics()<CR>]
 -- completion
 map("i", "<S-Tab>", [[pumvisible() ? "<C-p>" : "<Tab>"]], { expr = true })
 map("i", "<Tab>", [[pumvisible() ? "<C-n>" : "<Tab>"]], { expr = true })
-map("i", "<CR>", [[compe#confirm("<CR>")]], { expr = true })
+-- map("i", "<CR>", [[compe#confirm("<CR>")]], { expr = true })
 
 -- telescope
 map("n", "<leader>ff", [[<cmd>lua require"telescope.builtin".find_files()<CR>]])
@@ -130,10 +144,10 @@ map("n", "<leader>dso", [[<cmd>lua require"dap".step_over()<CR>]])
 map("n", "<leader>dsi", [[<cmd>lua require"dap".step_into()<CR>]])
 
 
--- other stuff
-require("playground.globals")
-map("n", "<leader><leader>p", [[<cmd>lua require"playground.functions".peek()<CR>]])
-map("n", "<leader><leader>s", [[<cmd>lua RELOAD("playground.semantic").generate()<CR>]])
+-- -- other stuff
+-- require("playground.globals")
+-- map("n", "<leader><leader>p", [[<cmd>lua require"playground.functions".peek()<CR>]])
+-- map("n", "<leader><leader>s", [[<cmd>lua RELOAD("playground.semantic").generate()<CR>]])
 
 
 -- nerdtree
@@ -163,7 +177,7 @@ g["onedark_style"] = "cool"
 cmd("colorscheme onedark")
 -- TODO make sure this works later
 -- TODO I can't get this to work as expected
-cmd([[highlight LspDiagnosticsUnderlineWarning guifg=None]])
+-- cmd([[highlight LspDiagnosticsUnderlineWarning guifg=None]])
 --cmd([[highlight LspDiagnosticsUnderlineWarning guifg=None"]])
 
 -- LSP
