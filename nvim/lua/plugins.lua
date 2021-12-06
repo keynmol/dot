@@ -4,11 +4,16 @@ return require("packer").startup(function(use)
   use({ "navarasu/onedark.nvim" })
   use({ "shime/vim-livedown" })
   -- auto complete
-  use({ "hrsh7th/cmp-nvim-lsp" })
-  use({ "hrsh7th/cmp-vsnip" })
-  use({ "hrsh7th/nvim-cmp" })
-  use({ "hrsh7th/vim-vsnip" })
-
+  use({
+    "hrsh7th/nvim-cmp",
+    requires = {
+      { "hrsh7th/cmp-buffer" },
+      { "hrsh7th/cmp-nvim-lsp" },
+      { "hrsh7th/cmp-path" },
+      { "hrsh7th/cmp-vsnip" },
+      { "hrsh7th/vim-vsnip" },
+    },
+  })
   use({ "kevinhwang91/nvim-bqf" })
   use({ "kyazdani42/nvim-web-devicons" })
   use({ "liuchengxu/vista.vim" })
