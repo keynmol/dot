@@ -52,9 +52,6 @@ g["netrw_gx"] = "<cWORD>"
 g["vim_markdown_conceal"] = 0
 g["vim_markdown_conceal_code_blocks"] = 0
 
--- nvim-metals
-g["metals_server_version"] = "0.10.9+126-14672630-SNAPSHOT"
-
 ----------------------------------
 -- OPTIONS -----------------------
 ----------------------------------
@@ -91,7 +88,7 @@ opt("b", "fileformat", "unix")
 
 -- MAPPINGS -----------------------
 -- insert-mode mappings
-map("n", "<leader>n", [[<cmd>lua RELOAD("settings.functions").toggle_nums()<CR>]])
+map("n", "<leader>n", [[<cmd>lua require("settings.functions").toggle_nums()<CR>]])
 
 -- normal-mode mappings
 map("n", "<leader>hs", ":nohlsearch<cr>")
