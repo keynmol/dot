@@ -59,24 +59,6 @@ M.setup = function()
   Metals_config.on_attach = function(client, bufnr)
     require("metals").setup_dap()
   end
-
-
-  -- lsp_config.html.setup({})
-  -- lsp_config.jsonls.setup({
-  --   commands = {
-  --     Format = {
-  --       function()
-  --         vim.lsp.buf.range_formatting({}, { 0, 0 }, { vim.fn.line("$"), 0 })
-  --       end,
-  --     },
-  --   },
-  -- })
-
-  -- lsp_config.yamlls.setup({})
-
-
-  -- Uncomment for trace logs from neovim
-  --vim.lsp.set_log_level('trace')
 end
 
 return M

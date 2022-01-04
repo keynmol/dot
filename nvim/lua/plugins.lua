@@ -1,7 +1,6 @@
 return require("packer").startup(function(use)
   use({ "glepnir/galaxyline.nvim" })
-  use({ "tami5/lspsaga.nvim", branch='nvim51' })
-  use({ "navarasu/onedark.nvim" })
+  use({ "tami5/lspsaga.nvim", branch='nvim6.0' })
   use({ "shime/vim-livedown" })
   -- auto complete
   use({
@@ -33,6 +32,7 @@ return require("packer").startup(function(use)
   use({ "tpope/vim-commentary" })
   use({ "wbthomason/packer.nvim", opt = true })
   use({ "preservim/nerdtree" })
+  use({ "rebelot/kanagawa.nvim" })
   use({'lukas-reineke/indent-blankline.nvim'})
   use {
         'nvim-treesitter/nvim-treesitter',
