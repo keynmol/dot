@@ -119,8 +119,8 @@ map("n", "[c", [[<cmd>lua vim.diagnostic.goto_prev()<CR>]])
 map("n", "<leader>ld", [[<cmd>lua vim.diagnostic.open_float(0, {scope = "line"})<CR>]])
 
 -- completion
-map("i", "<S-Tab>", [[pumvisible() ? "<C-p>" : "<Tab>"]], { expr = true })
-map("i", "<Tab>", [[pumvisible() ? "<C-n>" : "<Tab>"]], { expr = true })
+-- map("i", "<S-Tab>", [[pumvisible() ? "<C-p>" : "<Tab>"]], { expr = true })
+-- map("i", "<Tab>", [[pumvisible() ? "<C-n>" : "<Tab>"]], { expr = true })
 -- map("i", "<CR>", [[compe#confirm("<CR>")]], { expr = true })
 
 -- telescope
