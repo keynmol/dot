@@ -22,7 +22,7 @@ M.setup = function()
       "com.github.swagger.akka.javadsl",
       "akka.stream.javadsl",
     },
-    serverVersion = '0.10.9+295-ad8c7778-SNAPSHOT'
+    serverVersion = '0.11.1+26-2614652c-SNAPSHOT'
   }
 
   Metals_config.init_options.statusBarProvider = "on"

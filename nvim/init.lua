@@ -14,7 +14,7 @@ require("settings.functions")
 require("settings.cmp").setup()
 require("settings.telescope").setup()
 require("settings.lsp").setup()
-require("settings.zeta-note").setup()
+-- require("settings.zeta-note").setup()
 
 require("settings.galaxyline").setup()
 require("lspsaga").init_lsp_saga({
