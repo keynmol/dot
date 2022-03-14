@@ -26,13 +26,26 @@ require("indent_blankline").setup {
     char = "|",
     buftype_exclude = {"terminal"}
 }
+local parser_config = require "nvim-treesitter.parsers".get_parser_configs()
+parser_config.scala = {
+  install_info = {
+    url = "~/projects/tree-sitter-scala", -- local path or git repo
+    files = {"src/parser.c", "src/scanner.c"},
+    -- optional entries:
+    branch = "main", -- default branch in case of git repo if different from master
+    generate_requires_npm = true, -- if stand-alone parser without npm dependencies
+    requires_generate_from_grammar = true, -- if folder contains pre-generated src/parser.c
+  },
+  filetype = "scala", -- if filetype does not agrees with parser name
+  used_by = {"scala", "sbt"} -- additional filetypes that use this parser
+}
 require'nvim-treesitter.configs'.setup {
   ensure_installed = "maintained", -- one of "all", "maintained" (parsers with maintainers), or a list of languages
   sync_install = false, -- install languages synchronously (only applied to `ensure_installed`)
   ignore_install = { "javascript" }, -- List of parsers to ignore installing
   highlight = {
     enable = true,              -- false will disable the whole extension
-    -- disable = { "scala" },  -- list of language that will be disabled
+    disable = { "scala" },  -- list of language that will be disabled
     -- Setting this to true will run `:h syntax` and tree-sitter at the same time.
     -- Set this to `true` if you depend on 'syntax' being enabled (like for indentation).
     -- Using this option may slow down your editor, and you may see some duplicate highlights.
@@ -40,6 +53,7 @@ require'nvim-treesitter.configs'.setup {
     additional_vim_regex_highlighting = false,
   },
 }
+
 require'lspconfig'.clangd.setup{}
 ----------------------------------
 -- VARIABLES ---------------------
@@ -167,7 +181,7 @@ cmd("colorscheme kanagawa")
 cmd([[augroup lsp]])
 cmd([[autocmd!]])
 cmd([[autocmd FileType scala,sbt setlocal omnifunc=v:lua.vim.lsp.omnifunc]])
-cmd([[autocmd FileType scala,sbt lua require("metals").initialize_or_attach(Metals_config)]])
+cmd([[autocmd FileType scala,sbt,java lua require("metals").initialize_or_attach(Metals_config)]])
 cmd([[augroup end]])
 
 ----------------------------------
