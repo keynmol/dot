@@ -23,29 +23,41 @@ require("lspsaga").init_lsp_saga({
 })
 
 require("indent_blankline").setup {
-    char = "|",
-    buftype_exclude = {"terminal"}
+  char = "|",
+  buftype_exclude = { "terminal" }
 }
 local parser_config = require "nvim-treesitter.parsers".get_parser_configs()
 parser_config.scala = {
   install_info = {
     url = "~/projects/tree-sitter-scala", -- local path or git repo
-    files = {"src/parser.c", "src/scanner.c"},
+    files = { "src/parser.c", "src/scanner.c" },
     -- optional entries:
     branch = "main", -- default branch in case of git repo if different from master
     generate_requires_npm = true, -- if stand-alone parser without npm dependencies
     requires_generate_from_grammar = true, -- if folder contains pre-generated src/parser.c
   },
   filetype = "scala", -- if filetype does not agrees with parser name
-  used_by = {"scala", "sbt"} -- additional filetypes that use this parser
+  used_by = { "scala", "sbt" } -- additional filetypes that use this parser
 }
-require'nvim-treesitter.configs'.setup {
-  ensure_installed = "maintained", -- one of "all", "maintained" (parsers with maintainers), or a list of languages
+parser_config.smithy = {
+  install_info = {
+    url = "https://github.com/indoorvivants/tree-sitter-smithy", -- local path or git repo
+    files = { "src/parser.c" },
+    -- optional entries:
+    branch = "main", -- default branch in case of git repo if different from master
+    generate_requires_npm = true, -- if stand-alone parser without npm dependencies
+    requires_generate_from_grammar = true, -- if folder contains pre-generated src/parser.c
+  },
+  filetype = "smithy" -- if filetype does not agrees with parser name
+}
+
+require 'nvim-treesitter.configs'.setup {
+  -- ensure_installed = "maintained", -- one of "all", "maintained" (parsers with maintainers), or a list of languages
   sync_install = false, -- install languages synchronously (only applied to `ensure_installed`)
   ignore_install = { "javascript" }, -- List of parsers to ignore installing
   highlight = {
-    enable = true,              -- false will disable the whole extension
-    disable = { "scala" },  -- list of language that will be disabled
+    enable = true, -- false will disable the whole extension
+    -- disable = { "scala" },  -- list of language that will be disabled
     -- Setting this to true will run `:h syntax` and tree-sitter at the same time.
     -- Set this to `true` if you depend on 'syntax' being enabled (like for indentation).
     -- Using this option may slow down your editor, and you may see some duplicate highlights.
@@ -54,7 +66,49 @@ require'nvim-treesitter.configs'.setup {
   },
 }
 
-require'lspconfig'.clangd.setup{}
+vim.filetype.add({
+  extension = {
+    smithy = "smithy",
+  },
+})
+
+require 'lspconfig'.clangd.setup {}
+require 'lspconfig'.zls.setup {}
+require 'lspconfig'.smithy.setup {}
+require 'lspconfig'.ocamllsp.setup{}
+require 'lspconfig'.fsautocomplete.setup{}
+require 'lspconfig'.marksman.setup {
+  cmd = {'/Users/velvetbaldmime/projects/marksman/Marksman/bin/Debug/net6.0/marksman', 'server'}
+}
+
+local runtime_path = vim.split(package.path, ';')
+table.insert(runtime_path, "lua/?.lua")
+table.insert(runtime_path, "lua/?/init.lua")
+
+require 'lspconfig'.sumneko_lua.setup {
+  settings = {
+    Lua = {
+      runtime = {
+        -- Tell the language server which version of Lua you're using (most likely LuaJIT in the case of Neovim)
+        version = 'LuaJIT',
+        -- Setup your lua path
+        path = runtime_path,
+      },
+      diagnostics = {
+        -- Get the language server to recognize the `vim` global
+        globals = { 'vim' },
+      },
+      workspace = {
+        -- Make the server aware of Neovim runtime files
+        library = vim.api.nvim_get_runtime_file("", true),
+      },
+      -- Do not send telemetry data containing a randomized but unique identifier
+      telemetry = {
+        enable = false,
+      },
+    },
+  },
+}
 ----------------------------------
 -- VARIABLES ---------------------
 ----------------------------------
@@ -124,7 +178,7 @@ map("n", "<leader>rn", [[<cmd>lua require"lspsaga.rename".rename()<CR>]])
 map("n", "<leader>ca", [[<cmd>lua require"lspsaga.codeaction".code_action()<CR>]])
 map("v", "<leader>ca", [[<cmd>lua require"lspsaga.codeaction".range_code_action()<CR>]])
 map("n", "<leader>ws", [[<cmd>lua require"metals".worksheet_hover()<CR>]])
-map("n", "<leader>rr", [[<cmd>lua vim.lsp.codelens.run()<CR>]]) 
+map("n", "<leader>rr", [[<cmd>lua vim.lsp.codelens.run()<CR>]])
 -- diagnostics
 map("n", "<leader>a", [[<cmd>lua vim.diagnostic.setqflist()<CR>]])
 map("n", "<leader>d", [[<cmd>lua vim.diagnostic.setloclist()<CR>]]) -- buffer diagnostics only
@@ -184,6 +238,16 @@ cmd([[autocmd FileType scala,sbt setlocal omnifunc=v:lua.vim.lsp.omnifunc]])
 cmd([[autocmd FileType scala,sbt,java lua require("metals").initialize_or_attach(Metals_config)]])
 cmd([[augroup end]])
 
+vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
+  pattern = { "*.smithy" },
+  callback = function() vim.cmd("setfiletype smithy") end
+})
+
+vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
+  pattern = { "*.fs" },
+  callback = function() vim.cmd("setfiletype fsharp") end
+})
+cmd([[autocmd FileType fsharp setlocal commentstring=//\ %s]])
 ----------------------------------
 -- LSP Settings ------------------
 ----------------------------------

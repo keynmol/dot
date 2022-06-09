@@ -14,6 +14,7 @@ alias gd='git diff -u .'
 # alias gmum='git merge upstream/main'
 alias scli="scala-cli"
 alias repl="scala-cli repl"
+alias sbtn="sbt --client"
 
 # Commands to run in interactive sessions can go here
 fish_add_path $HOME/.tools
@@ -22,6 +23,8 @@ fish_add_path /opt/homebrew/bin
 fish_add_path $HOME/.tools/node-v16.13.1-darwin-arm64/bin/
 fish_add_path $HOME/.tools/node-v16.13.1-darwin-arm64/bin/
 fish_add_path $HOME/.fly/bin
+fish_add_path $HOME/.tools/current_node/bin
+fish_add_path $HOME/.tools/sumneko-lua-language-server/bin/
 
 set -gx EDITOR nvim
 set -gx VISUAL $EDITOR
@@ -30,7 +33,8 @@ set FLY_INSTALL "$HOME/.fly"
 
 function fish_prompt
     set_color FF0
-    printf (basename (pwd))
+    printf (prompt_pwd)
+    printf (fish_git_prompt)
     printf '> '
     set_color normal
 end

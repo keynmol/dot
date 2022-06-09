@@ -1,6 +1,6 @@
 return require("packer").startup(function(use)
   use({ "glepnir/galaxyline.nvim" })
-  use({ "tami5/lspsaga.nvim", branch='nvim6.0' })
+  use({ "tami5/lspsaga.nvim" })
   use({ "shime/vim-livedown" })
   -- auto complete
   use({
@@ -28,6 +28,7 @@ return require("packer").startup(function(use)
   use({ "scalameta/nvim-metals"})
   use({ "sheerun/vim-polyglot" })
   use({ "tpope/vim-fugitive" })
+  use({ "ziglang/zig.vim" })
   use({ "tpope/vim-commentary" })
   use({ "wbthomason/packer.nvim", opt = true })
   use({ "preservim/nerdtree" })
