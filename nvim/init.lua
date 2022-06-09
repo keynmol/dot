@@ -168,7 +168,7 @@ map("n", "<leader>fp", ":cprevious<cr>")
 map("n", "<leader>tv", ":vnew | :te<cr>")
 
 -- LSP
-map("n", "<leader>sf", [[<cmd>lua vim.lsp.buf.formatting()<CR>]])
+map("n", "<leader>sf", [[<cmd>lua vim.lsp.buf.format { async = true }<CR>]])
 map("n", "gd", [[<cmd>lua vim.lsp.buf.definition()<CR>]])
 map("n", "K", [[<cmd>lua require"lspsaga.hover".render_hover_doc()<CR>]])
 map("v", "K", [[<Esc><cmd>lua require("metals").type_of_range()<CR>]])
