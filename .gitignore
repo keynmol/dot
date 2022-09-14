@@ -1,2 +1,4 @@
 fish/fish_variables
 nvim/plugin
+
+nvim/lua/locals.lua

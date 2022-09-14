@@ -20,8 +20,20 @@ local function toggle_nums()
   opt("w", "number", not vim.wo.number)
 end
 
+local function merge(a, b)
+
+
+  ab = {}
+
+  table.foreach(a, function(k, v) table.insert(ab, v) end)
+  table.foreach(b, function(k, v) table.insert(ab, v) end)
+
+  return ab
+end
+
 return {
   opt = opt,
   map = map,
   toggle_nums = toggle_nums,
+  mergelists = merge
 }

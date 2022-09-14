@@ -3,8 +3,8 @@ local M = {}
 M.setup = function()
   local shared_diagnostic_settings = vim.lsp.with(vim.lsp.diagnostic.on_publish_diagnostics, { virtual_text = true })
   local lsp_config = require("lspconfig")
-  local capabilities = vim.lsp.protocol.make_client_capabilities()
-  capabilities.textDocument.completion.completionItem.snippetSupport = true
+  local bare_capabilities = vim.lsp.protocol.make_client_capabilities()
+  local capabilities = require("cmp_nvim_lsp").update_capabilities(bare_capabilities)
 
   lsp_config.util.default_config = vim.tbl_extend("force", lsp_config.util.default_config, {
     handlers = {
@@ -12,6 +12,8 @@ M.setup = function()
     },
     capabilities = capabilities,
   })
+
+  vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, { border = "single" })
 
   Metals_config = require("metals").bare_config()
   Metals_config.settings = {
@@ -22,7 +24,7 @@ M.setup = function()
       "com.github.swagger.akka.javadsl",
       "akka.stream.javadsl",
     },
-    serverVersion = '0.11.6'
+    serverVersion = 'latest.snapshot'
   }
 
   Metals_config.init_options.statusBarProvider = "on"
