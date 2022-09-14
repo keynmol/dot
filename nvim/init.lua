@@ -29,6 +29,10 @@ local parser_config = require "nvim-treesitter.parsers".get_parser_configs()
 
 local local_overrides = require('locals')
 
+if not(type(local_overrides) == table) then 
+  local_overrides = {} 
+end
+
 local overriden = function(key, default)
   if not local_overrides[key] then
     return default
