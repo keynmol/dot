@@ -26,12 +26,16 @@ require("lspsaga").init_lsp_saga({
 -- vim.lsp.set_log_level('trace')
 
 local parser_config = require "nvim-treesitter.parsers".get_parser_configs()
+local local_overrides = {}
 
-local local_overrides = require('locals')
+local function init_locals()
+  local local_overrides = require('locals')
+  if not(type(local_overrides) == table) then 
+    local_overrides = {} 
+  end
+end 
 
-if not(type(local_overrides) == table) then 
-  local_overrides = {} 
-end
+pcall(init_locals)
 
 local overriden = function(key, default)
   if not local_overrides[key] then
