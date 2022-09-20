@@ -1,13 +1,30 @@
 -- https://github.com/nvim-telescope/telescope.nvim
 local M = {}
 
+local previewers = require("telescope.previewers")
+
+local new_maker = function(filepath, bufnr, opts)
+  opts = opts or {}
+
+  filepath = vim.fn.expand(filepath)
+  vim.loop.fs_stat(filepath, function(_, stat)
+    if not stat then return end
+    if stat.size > 100000 then
+      return
+    else
+      previewers.buffer_previewer_maker(filepath, bufnr, opts)
+    end
+  end)
+end
+
 M.setup = function()
   require("telescope").setup({
     defaults = {
+      buffer_previewer_maker = new_maker,
       file_ignore_patterns = { "target", "node_modules", "parser.c" },
       prompt_prefix = "❯",
-      file_previewer = require("telescope.previewers").vim_buffer_cat.new,
-      grep_previewer = require("telescope.previewers").vim_buffer_vimgrep.new,
+      -- file_previewer = require("telescope.previewers").vim_buffer_cat.new,
+      -- grep_previewer = require("telescope.previewers").vim_buffer_vimgrep.new,
     },
   })
 

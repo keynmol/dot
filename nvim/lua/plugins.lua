@@ -17,7 +17,10 @@ return require("packer").startup(function(use)
 
   use({'NLKNguyen/papercolor-theme'})
   use({ "kevinhwang91/nvim-bqf" })
-  use({ "kyazdani42/nvim-web-devicons" })
+
+  use({ 'kyazdani42/nvim-web-devicons'})
+  use({ 'kyazdani42/nvim-tree.lua'})
+
   use({ "mfussenegger/nvim-dap" })
   use({ "neovim/nvim-lspconfig" })
   use({
@@ -34,7 +37,7 @@ return require("packer").startup(function(use)
   use({ "ziglang/zig.vim" })
   use({ "tpope/vim-commentary" })
   use({ "wbthomason/packer.nvim", opt = true })
-  use({ "preservim/nerdtree" })
+  -- use({ "preservim/nerdtree" })
   use({ "rebelot/kanagawa.nvim" })
   use({ "cormacrelf/vim-colors-github" })
   use({'lukas-reineke/indent-blankline.nvim'})

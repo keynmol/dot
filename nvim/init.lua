@@ -16,6 +16,24 @@ require("settings.cmp").setup()
 require("settings.telescope").setup()
 require("settings.lsp").setup()
 
+require("nvim-tree").setup({
+  sort_by = "case_sensitive",
+  view = {
+    adaptive_size = true,
+    mappings = {
+      list = {
+        { key = "U", action = "dir_up" },
+      },
+    },
+  },
+  renderer = {
+    group_empty = true,
+  },
+  filters = {
+    dotfiles = true,
+  },
+})
+
 require("settings.galaxyline").setup()
 
 require("lspsaga").init_lsp_saga({
@@ -116,6 +134,24 @@ if local_overrides.marksman_lsp then
 end
 
 local lsp = vim.api.nvim_create_augroup("LSP", { clear = true })
+
+if local_overrides.sample_langoustine_lsp then
+  vim.api.nvim_create_autocmd("FileType", {
+    group = lsp,
+    pattern = "langoustine",
+    callback = function()
+      vim.lsp.start({
+        name = "Langoustine LSP",
+        cmd = add_tracing("sample_native", {local_overrides.sample_langoustine_lsp})
+      })
+    end,
+  })
+
+  vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
+    pattern = { "*.langoustine" },
+    callback = function() vim.cmd("setfiletype langoustine") end
+  })
+end
 
 if local_overrides.grammar_js_lsp then
   vim.api.nvim_create_autocmd("FileType", {
@@ -344,8 +380,8 @@ map("n", "<leader>dsi", [[<cmd>lua require"dap".step_into()<CR>]])
 
 -- nerdtree
 
-vim.cmd([[nnoremap <C-a> :NERDTreeFind<CR>]])
-vim.cmd([[nnoremap <C-t> :NERDTreeToggle<CR>]])
+vim.cmd([[nnoremap <C-a> :NvimTreeFindFile<CR>]])
+vim.cmd([[nnoremap <C-t> :NvimTreeToggle<CR>]])
 
 -- navigation
 vim.cmd([[nnoremap <C-h> <C-w>h]])
