@@ -15,11 +15,10 @@ return require("packer").startup(function(use)
     },
   })
 
-  use({'NLKNguyen/papercolor-theme'})
+  use({ 'NLKNguyen/papercolor-theme' })
   use({ "kevinhwang91/nvim-bqf" })
-
-  use({ 'kyazdani42/nvim-web-devicons'})
-  use({ 'kyazdani42/nvim-tree.lua'})
+  use({ 'kyazdani42/nvim-web-devicons' })
+  use({ 'kyazdani42/nvim-tree.lua' })
 
   use({ "mfussenegger/nvim-dap" })
   use({ "neovim/nvim-lspconfig" })
@@ -31,7 +30,7 @@ return require("packer").startup(function(use)
       { "nvim-telescope/telescope-fzy-native.nvim" },
     },
   })
-  use({ "scalameta/nvim-metals"})
+  use({ "scalameta/nvim-metals" })
   use({ "sheerun/vim-polyglot" })
   use({ "tpope/vim-fugitive" })
   use({ "ziglang/zig.vim" })
@@ -40,12 +39,12 @@ return require("packer").startup(function(use)
   -- use({ "preservim/nerdtree" })
   use({ "rebelot/kanagawa.nvim" })
   use({ "cormacrelf/vim-colors-github" })
-  use({'lukas-reineke/indent-blankline.nvim'})
+  use({ 'lukas-reineke/indent-blankline.nvim' })
   use {
-        'nvim-treesitter/nvim-treesitter',
-        run = ':TSUpdate'
-    }
+    'nvim-treesitter/nvim-treesitter',
+    run = ':TSUpdate'
+  }
   use {
-        'nvim-treesitter/playground'
-    }
+    'nvim-treesitter/playground'
+  }
 end)

@@ -30,7 +30,7 @@ require("nvim-tree").setup({
     group_empty = true,
   },
   filters = {
-    dotfiles = true,
+    dotfiles = false,
   },
 })
 
@@ -44,16 +44,14 @@ require("lspsaga").init_lsp_saga({
 -- vim.lsp.set_log_level('trace')
 
 local parser_config = require "nvim-treesitter.parsers".get_parser_configs()
-local local_overrides = {}
 
-local function init_locals()
-  local local_overrides = require('locals')
-  if not(type(local_overrides) == table) then 
-    local_overrides = {} 
-  end
-end 
+local function prequire(m, df)
+  local ok, res = pcall(require, m)
+  if not ok then return df, res end
+  return res
+end
 
-pcall(init_locals)
+local local_overrides = prequire("settings.locals")
 
 local overriden = function(key, default)
   if not local_overrides[key] then
@@ -105,7 +103,6 @@ parser_config.smithy = {
 }
 
 require 'nvim-treesitter.configs'.setup {
-  -- ensure_installed = "maintained", -- one of "all", "maintained" (parsers with maintainers), or a list of languages
   sync_install = false, -- install languages synchronously (only applied to `ensure_installed`)
   highlight = {
     enable = true, -- false will disable the whole extension
@@ -131,6 +128,8 @@ if local_overrides.marksman_lsp then
       local_overrides.marksman_lsp, 'server' -- the command to launch target LSP
     })
   }
+else
+  require 'lspconfig'.marksman.setup {}
 end
 
 local lsp = vim.api.nvim_create_augroup("LSP", { clear = true })
@@ -142,7 +141,7 @@ if local_overrides.sample_langoustine_lsp then
     callback = function()
       vim.lsp.start({
         name = "Langoustine LSP",
-        cmd = add_tracing("sample_native", {local_overrides.sample_langoustine_lsp})
+        cmd = add_tracing("sample_native", { local_overrides.sample_langoustine_lsp })
       })
     end,
   })
@@ -159,11 +158,13 @@ if local_overrides.grammar_js_lsp then
     pattern = "tree-sitter-grammar",
     callback = function()
       local path = vim.fs.find({ "grammar.js" })
-      vim.lsp.start({
-        name = "Grammar.js LSP",
-        cmd = add_tracing("grammarJs", { local_overrides.grammar_js_lsp }),
-        root_dir = vim.fs.dirname(path[1])
-      })
+      if (path[1]) then
+        vim.lsp.start({
+          name = "Grammar.js LSP",
+          cmd = add_tracing("grammarJs", { local_overrides.grammar_js_lsp }),
+          root_dir = vim.fs.dirname(path[1])
+        })
+      end
     end,
   })
 
@@ -188,12 +189,14 @@ if local_overrides.github_actions_lsp then
     pattern = "yaml",
     callback = function()
       local path = vim.fs.find({ ".github/workflows" })
-      vim.lsp.start({
-        name = "Github Actions LSP",
-        cmd = add_tracing("github_actions", { local_overrides.github_actions_lsp }),
-        root_dir = vim.fs.dirname(path[1])
-      })
-    end,
+      if (path[1]) then
+        vim.lsp.start({
+          name = "Github Actions LSP",
+          cmd = add_tracing("github_actions", { local_overrides.github_actions_lsp }),
+          root_dir = vim.fs.dirname(path[1])
+        })
+      end
+    end
   })
 end
 
@@ -258,21 +261,16 @@ if local_overrides.quickmaffs_lsp then
   })
 end
 
-if local_overrides.langoustine_native_lsp then
+if local_overrides.llvm_lsp then
   vim.api.nvim_create_autocmd("FileType", {
     group = lsp,
-    pattern = "testnative",
+    pattern = "lifelines",
     callback = function()
       vim.lsp.start({
-        name = "Langoustine",
-        cmd = add_tracing("langoustine_native", { local_overrides.langoustine_native_lsp }),
+        name = "LLVM LSP",
+        cmd = add_tracing("llvm", { local_overrides.llvm_lsp }),
       })
-    end,
-  })
-
-  vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
-    pattern = { "*.lls" },
-    callback = function() vim.cmd("setfiletype testnative") end
+    end
   })
 end
 
@@ -295,7 +293,7 @@ vim.o.shortmess = string.gsub(vim.o.shortmess, "F", "") .. "c"
 vim.o.path = vim.o.path .. "**"
 
 -- global
-opt("o", "termguicolors", true)
+-- opt("o", "termguicolors", true)
 opt("o", "hidden", true)
 opt("o", "showtabline", 1)
 opt("o", "updatetime", 300)
@@ -325,7 +323,7 @@ opt("b", "fileformat", "unix")
 
 -- MAPPINGS -----------------------
 -- insert-mode mappings
-map("n", "<leader>n", [[<cmd>lua require("settings.functions").toggle_nums()<CR>]])
+-- map("n", "<leader>n", [[<cmd>lua require("settings.functions").toggle_nums()<CR>]])
 
 -- normal-mode mappings
 map("n", "<leader>hs", ":nohlsearch<cr>")

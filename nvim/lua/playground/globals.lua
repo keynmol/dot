@@ -7,3 +7,9 @@ RELOAD = function(p)
   package.loaded[p] = nil
   return require(p)
 end
+
+M = {}
+
+M.pprint = P 
+
+return M

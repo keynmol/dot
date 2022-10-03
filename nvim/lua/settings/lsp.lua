@@ -25,6 +25,7 @@ M.setup = function()
       "akka.stream.javadsl",
     },
     serverVersion = 'latest.snapshot'
+    -- serverVersion = '0.11.8'
   }
 
   Metals_config.init_options.statusBarProvider = "on"
@@ -43,19 +44,20 @@ M.setup = function()
       request = "launch",
       name = "Run",
       metalsRunType = "run",
-    },
-    {
-      type = "scala",
-      request = "launch",
-      name = "Test File",
-      metalsRunType = "testFile",
-    },
-    {
-      type = "scala",
-      request = "launch",
-      name = "Test Target",
-      metalsRunType = "testTarget",
-    },
+    }
+    -- },
+    -- {
+    --   type = "scala",
+    --   request = "launch",
+    --   name = "Test File",
+    --   metalsRunType = "testFile",
+    -- },
+    -- {
+    --   type = "scala",
+    --   request = "launch",
+    --   name = "Test Target",
+    --   metalsRunType = "testTarget",
+    -- },
   }
 
   Metals_config.on_attach = function(client, bufnr)
