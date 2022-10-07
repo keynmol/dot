@@ -125,7 +125,7 @@ M.setup = function()
       provider = function()
         return "  " .. (vim.g["metals_status"] or "")
       end,
-      highlight = { colors.line_bg, colors.bg },
+      highlight = { colors.fg, colors.bg },
     },
   }
   gls.right[1] = {
