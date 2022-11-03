@@ -118,7 +118,6 @@ require("indent_blankline").setup {
 
 require 'lspconfig'.clangd.setup {}
 require 'lspconfig'.zls.setup {}
-require 'lspconfig'.smithy.setup {}
 require 'lspconfig'.ocamllsp.setup {}
 require 'lspconfig'.fsautocomplete.setup {}
 
