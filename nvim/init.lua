@@ -428,3 +428,4 @@ vim.cmd([[hi! link LspReferenceWrite CursorColumn]])
 
 vim.cmd([[hi! link LspSagaFinderSelection CursorColumn]])
 vim.cmd([[hi! link LspSagaDocTruncateLine LspSagaHoverBorder]])
+vim.cmd([[hi TreesitterContextBottom gui=underline guisp=Green]])
