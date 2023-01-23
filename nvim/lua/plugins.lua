@@ -1,5 +1,9 @@
 return require("packer").startup(function(use)
-  use({ "glepnir/galaxyline.nvim" })
+  use {
+    'nvim-lualine/lualine.nvim',
+    requires = { 'kyazdani42/nvim-web-devicons', opt = true }
+  }
+  -- use({ "glepnir/galaxyline.nvim" })
   use({ "kkharji/lspsaga.nvim" })
   use({ "shime/vim-livedown" })
   -- auto complete
@@ -15,7 +19,6 @@ return require("packer").startup(function(use)
     },
   })
 
-  use({ 'NLKNguyen/papercolor-theme' })
   use({ "kevinhwang91/nvim-bqf" })
   use({ 'kyazdani42/nvim-web-devicons' })
   use({ 'kyazdani42/nvim-tree.lua' })
@@ -36,9 +39,8 @@ return require("packer").startup(function(use)
   use({ "ziglang/zig.vim" })
   use({ "tpope/vim-commentary" })
   use({ "wbthomason/packer.nvim", opt = true })
-  -- use({ "preservim/nerdtree" })
   use({ "rebelot/kanagawa.nvim" })
-  use({ "cormacrelf/vim-colors-github" })
+  -- use({ "cormacrelf/vim-colors-github" })
   use({ 'lukas-reineke/indent-blankline.nvim' })
   use {
     'nvim-treesitter/nvim-treesitter',
@@ -47,4 +49,12 @@ return require("packer").startup(function(use)
   use {
     'nvim-treesitter/playground'
   }
+  use({
+    "https://git.sr.ht/~whynothugo/lsp_lines.nvim",
+    config = function()
+      require("lsp_lines").setup()
+    end,
+  })
+
+  use 'neandertech/nvim-langoustine'
 end)

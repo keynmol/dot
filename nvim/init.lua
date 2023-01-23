@@ -1,57 +1,193 @@
-local cmd = vim.cmd
-local fn = vim.fn
-local g = vim.g
-local f = require("settings.functions")
-local map = f.map
-local opt = f.opt
-
-----------------------------------
--- SETUP PLUGINS -----------------
-----------------------------------
-cmd([[packadd packer.nvim]])
+vim.cmd([[packadd packer.nvim]])
 
 require("plugins")
-require("settings.functions")
-require("settings.cmp").setup()
-require("settings.telescope").setup()
-require("settings.lsp").setup()
+require('lualine').setup({})
 
-require("nvim-tree").setup({
-  sort_by = "case_sensitive",
-  view = {
-    adaptive_size = true,
-    mappings = {
-      list = {
-        { key = "U", action = "dir_up" },
+local FUNCTIONS = {
+  prequire = function(m, df)
+    local ok, res = pcall(require, m)
+    if not ok then return df, res end
+    return res
+  end,
+
+  merge = function(a, b)
+    local ab = {}
+
+    table.foreach(a, function(k, v) table.insert(ab, v) end)
+    table.foreach(b, function(k, v) table.insert(ab, v) end)
+
+    return ab
+  end
+
+}
+
+local CMP = {
+  setup = function()
+    local cmp = require("cmp")
+    local compare = require 'cmp.config.compare'
+    cmp.setup({
+      snippet = {
+        expand = function(args)
+          vim.fn["vsnip#anonymous"](args.body) -- For `vsnip` users.
+        end,
       },
-    },
-  },
-  renderer = {
-    group_empty = true,
-  },
-  filters = {
-    dotfiles = false,
-  },
-})
+      sources = {
+        { name = "nvim_lsp", priority = 100 },
+        { name = "buffer" },
+        { name = "path" },
+        { name = "vsnip" },
+      },
+      mapping = {
+        ["<CR>"] = cmp.mapping.confirm({ select = true }),
+        ["<Tab>"] = function(fallback)
+          if cmp.visible() then
+            cmp.select_next_item()
+          else
+            fallback()
+          end
+        end,
+        ["<S-Tab>"] = function(fallback)
+          if cmp.visible() then
+            cmp.select_prev_item()
+          else
+            fallback()
+          end
+        end,
+      },
+      sorting = {
+        comparators = {
+          compare.exact,
+          compare.score,
+          function(a, b)
+            if a:get_kind() == 5 and b:get_kind() == 2 then
+              return true
+            elseif a:get_kind() == 2 and b:get_kind() == 5 then
+              return false
+            end
+            return nil
+          end,
+          compare.kind,
+          compare.recently_used,
+          compare.locality,
+          compare.offset,
+          compare.sort_text,
+          compare.length,
+          compare.order
+        }
+      }
 
-require("settings.galaxyline").setup()
+    })
+  end
+}
 
-require("lspsaga").init_lsp_saga({
-  server_filetype_map = { metals = { "sbt", "scala" } },
-  code_action_prompt = { virtual_text = true },
-})
+local METALS = {
+  setup = function()
+    local shared_diagnostic_settings = vim.lsp.with(vim.lsp.diagnostic.on_publish_diagnostics, { virtual_text = false })
+    local lsp_config = require("lspconfig")
+    local capabilities = require("cmp_nvim_lsp").default_capabilities()
 
--- vim.lsp.set_log_level('trace')
+    lsp_config.util.default_config = vim.tbl_extend("force", lsp_config.util.default_config, {
+      handlers = {
+        ["textDocument/publishDiagnostics"] = shared_diagnostic_settings,
+      },
+      capabilities = capabilities,
+    })
 
-local parser_config = require "nvim-treesitter.parsers".get_parser_configs()
+    vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, { border = "single" })
 
-local function prequire(m, df)
-  local ok, res = pcall(require, m)
-  if not ok then return df, res end
-  return res
-end
+    Metals_config = require("metals").bare_config()
+    Metals_config.settings = {
+      showImplicitArguments = true,
+      showInferredType = true,
+      excludedPackages = {
+        "akka.actor.typed.javadsl",
+        "com.github.swagger.akka.javadsl",
+        "akka.stream.javadsl",
+      },
+      serverVersion = 'latest.snapshot',
+    }
 
-local local_overrides = prequire("settings.locals")
+    Metals_config.init_options.statusBarProvider = "on"
+    Metals_config.handlers["textDocument/publishDiagnostics"] = shared_diagnostic_settings
+    Metals_config.capabilities = capabilities
+
+    local dap = require("dap")
+
+    -- For that they usually provide a `console` option in their |dap-configuration|.
+    -- The supported values are usually called `internalConsole`, `integratedTerminal`
+    -- and `externalTerminal`.
+    dap.configurations.scala = {
+      {
+        type = "scala",
+        request = "launch",
+        name = "Run or test with input",
+        metals = {
+          runType = "runOrTestFile",
+          args = function()
+            local args_string = vim.fn.input("Arguments: ")
+            return vim.split(args_string, " +")
+          end,
+        },
+      },
+      {
+        type = "scala",
+        request = "launch",
+        name = "Run or Test",
+        metals = {
+          runType = "runOrTestFile",
+        },
+      },
+      {
+        type = "scala",
+        request = "launch",
+        name = "Test Target",
+        metals = {
+          runType = "testTarget",
+        },
+      },
+    }
+    Metals_config.on_attach = function(_, _)
+      require("metals").setup_dap()
+    end
+
+    vim.keymap.set("n", "<leader>tt", require("metals.tvp").toggle_tree_view)
+    vim.keymap.set("n", "<leader>tr", require("metals.tvp").reveal_in_tree)
+    vim.keymap.set("v", "K", require("metals").type_of_range)
+    vim.keymap.set("n", "<leader>ws", function() require("metals").hover_worksheet({ border = "single" }) end)
+  end
+}
+
+local NVIM_TREE = {
+  setup = function()
+    require("nvim-tree").setup({
+      sort_by = "case_sensitive",
+      view = {
+        adaptive_size = true,
+        mappings = {
+          list = {
+            { key = "U", action = "dir_up" },
+          },
+        },
+      },
+      renderer = {
+        group_empty = true,
+      },
+      filters = {
+        dotfiles = false,
+      },
+    })
+
+    vim.cmd([[nnoremap <C-a> :NvimTreeFindFile<CR>]])
+    vim.cmd([[nnoremap <C-t> :NvimTreeToggle<CR>]])
+  end
+}
+
+
+-- require("settings.galaxyline").setup()
+
+
+local local_overrides = FUNCTIONS.prequire("locals")
+
 
 local overriden = function(key, default)
   if not local_overrides[key] then
@@ -70,7 +206,7 @@ local function add_tracing(name, raw_cmd)
       return raw_cmd
     else
       if tcf.enabled[name] and tcf.enabled[name] == true then
-        return f.mergelists(tcf.cmd, raw_cmd)
+        return FUNCTIONS.mergelists(tcf.cmd, raw_cmd)
       else
         return raw_cmd
       end
@@ -78,37 +214,43 @@ local function add_tracing(name, raw_cmd)
   end
 end
 
-parser_config.scala = {
-  install_info = {
-    url = overriden("tree_sitter_scala_path", "https://github.com/keynmol/tree-sitter-scala"), -- local path or git repo
-    files = { "src/parser.c", "src/scanner.c" },
-    -- optional entries:
-    branch = overriden("tree_sitter_scala_branch", "test-scala3"), -- default branch in case of git repo if different from master
-    generate_requires_npm = true, -- if stand-alone parser without npm dependencies
-    requires_generate_from_grammar = true, -- if folder contains pre-generated src/parser.c
-  },
-  filetype = "scala", -- if filetype does not agrees with parser name
-  used_by = { "scala", "sbt" } -- additional filetypes that use this parser
-}
-parser_config.smithy = {
-  install_info = {
-    url = "https://github.com/indoorvivants/tree-sitter-smithy", -- local path or git repo
-    files = { "src/parser.c" },
-    -- optional entries:
-    branch = "main", -- default branch in case of git repo if different from master
-    generate_requires_npm = true, -- if stand-alone parser without npm dependencies
-    requires_generate_from_grammar = true, -- if folder contains pre-generated src/parser.c
-  },
-  filetype = "smithy" -- if filetype does not agrees with parser name
+local TREE_SITTER = {
+  setup = function()
+    local parser_config = require "nvim-treesitter.parsers".get_parser_configs()
+
+    parser_config.scala = {
+      install_info = {
+        generate_requires_npm = true, -- if stand-alone parser without npm dependencies
+        url = "~/projects/tree-sitter-scala/",
+        files = { "src/parser.c", "src/scanner.c" },
+        requires_generate_from_grammar = false, -- requires_generate_from_grammar = true, -- if folder contains pre-generated src/parser.c
+      },
+      filetype = "scala", -- if filetype does not agrees with parser name
+      used_by = { "scala", "sbt" } -- additional filetypes that use this parser
+    }
+
+    parser_config.smithy = {
+      install_info = {
+        url = "https://github.com/indoorvivants/tree-sitter-smithy", -- local path or git repo
+        files = { "src/parser.c" },
+        -- optional entries:
+        branch = "main", -- default branch in case of git repo if different from master
+        generate_requires_npm = true, -- if stand-alone parser without npm dependencies
+        requires_generate_from_grammar = true, -- if folder contains pre-generated src/parser.c
+      },
+      filetype = "smithy" -- if filetype does not agrees with parser name
+    }
+
+    require 'nvim-treesitter.configs'.setup {
+      sync_install = false, -- install languages synchronously (only applied to `ensure_installed`)
+      highlight = {
+        enable = true, -- false will disable the whole extension
+        additional_vim_regex_highlighting = false,
+      },
+    }
+  end
 }
 
-require 'nvim-treesitter.configs'.setup {
-  sync_install = false, -- install languages synchronously (only applied to `ensure_installed`)
-  highlight = {
-    enable = true, -- false will disable the whole extension
-    additional_vim_regex_highlighting = false,
-  },
-}
 
 
 require("indent_blankline").setup {
@@ -116,316 +258,353 @@ require("indent_blankline").setup {
   show_current_context_start = true,
 }
 
-require 'lspconfig'.clangd.setup {}
-require 'lspconfig'.zls.setup {}
-require 'lspconfig'.ocamllsp.setup {}
-require 'lspconfig'.fsautocomplete.setup {}
+local LSP_SERVERS = {
+  setup = function()
+    require 'lspconfig'.clangd.setup {}
+    require 'lspconfig'.zls.setup {}
+    require 'lspconfig'.ocamllsp.setup {}
+    require 'lspconfig'.fsautocomplete.setup {}
+    require 'lspconfig'.html.setup {}
+    local capabilities = vim.lsp.protocol.make_client_capabilities()
+    capabilities.textDocument.completion.completionItem.snippetSupport = true
 
-if local_overrides.marksman_lsp then
-  require 'lspconfig'.marksman.setup {
-    cmd = add_tracing("marksman", {
-      local_overrides.marksman_lsp, 'server' -- the command to launch target LSP
-    })
-  }
-else
-  require 'lspconfig'.marksman.setup {}
-end
+    require 'lspconfig'.cssls.setup {
+      capabilities = capabilities,
+    }
 
-local lsp = vim.api.nvim_create_augroup("LSP", { clear = true })
-
-if local_overrides.sample_langoustine_lsp then
-  vim.api.nvim_create_autocmd("FileType", {
-    group = lsp,
-    pattern = "langoustine",
-    callback = function()
-      vim.lsp.start({
-        name = "Langoustine LSP",
-        cmd = add_tracing("sample_native", { local_overrides.sample_langoustine_lsp })
-      })
-    end,
-  })
-
-  vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
-    pattern = { "*.langoustine" },
-    callback = function() vim.cmd("setfiletype langoustine") end
-  })
-end
-
-if local_overrides.grammar_js_lsp then
-  vim.api.nvim_create_autocmd("FileType", {
-    group = lsp,
-    pattern = "tree-sitter-grammar",
-    callback = function()
-      local path = vim.fs.find({ "grammar.js" })
-      if (path[1]) then
-        vim.lsp.start({
-          name = "Grammar.js LSP",
-          cmd = add_tracing("grammarJs", { local_overrides.grammar_js_lsp }),
-          root_dir = vim.fs.dirname(path[1])
+    if local_overrides.marksman_lsp then
+      require 'lspconfig'.marksman.setup {
+        cmd = add_tracing("marksman", {
+          local_overrides.marksman_lsp, 'server' -- the command to launch target LSP
         })
-      end
-    end,
-  })
-
-  vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
-    pattern = { "grammar.js" },
-    callback = function() vim.cmd("setfiletype tree-sitter-grammar") end
-  })
-
-  vim.api.nvim_create_autocmd({ "BufReadPost" }, {
-    pattern = { "grammar.js" },
-    command = "set syntax=javascript"
-  })
-end
-
-vim.cmd([[hi! link LspReferenceText CursorColumn]])
-vim.cmd([[hi! link LspReferenceRead CursorColumn]])
-vim.cmd([[hi! link LspReferenceWrite CursorColumn]])
-
-if local_overrides.github_actions_lsp then
-  vim.api.nvim_create_autocmd("FileType", {
-    group = lsp,
-    pattern = "yaml",
-    callback = function()
-      local path = vim.fs.find({ ".github/workflows" })
-      if (path[1]) then
-        vim.lsp.start({
-          name = "Github Actions LSP",
-          cmd = add_tracing("github_actions", { local_overrides.github_actions_lsp }),
-          root_dir = vim.fs.dirname(path[1])
-        })
-      end
+      }
+    else
+      require 'lspconfig'.marksman.setup {}
     end
-  })
-end
 
-vim.api.nvim_create_autocmd("FileType", {
-  group = lsp,
-  pattern = "smithy",
-  callback = function()
-    local path = vim.fs.find({ "smithy-build.json" })
-    vim.lsp.start({
-      name = "Smithy LSP",
-      cmd = add_tracing("smithy", { 'cs', 'launch', 'com.disneystreaming.smithy:smithy-language-server:latest.release', '--', '0' }),
-      root_dir = vim.fs.dirname(path[1])
+    local lsp = vim.api.nvim_create_augroup("LSP", { clear = true })
+
+    if local_overrides.grammar_js_lsp then
+      vim.api.nvim_create_autocmd("FileType", {
+        group = lsp,
+        pattern = "tree-sitter-grammar",
+        callback = function()
+          local path = vim.fs.find({ "grammar.js" })
+          if (path[1]) then
+            vim.lsp.start({
+              name = "Grammar.js LSP",
+              cmd = add_tracing("grammarJs", { local_overrides.grammar_js_lsp }),
+              root_dir = vim.fs.dirname(path[1])
+            })
+          end
+        end,
+      })
+
+      vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
+        pattern = { "grammar.js", "*/corpus/*.txt" },
+        callback = function() vim.cmd("setfiletype tree-sitter-grammar") end
+      })
+
+      vim.api.nvim_create_autocmd({ "BufReadPost" }, {
+        pattern = { "grammar.js" },
+        command = "set syntax=javascript"
+      })
+    end
+
+
+    if local_overrides.github_actions_lsp then
+      vim.api.nvim_create_autocmd("FileType", {
+        group = lsp,
+        pattern = "yaml",
+        callback = function()
+          local path = vim.fs.find({ ".github/workflows" })
+          if (path[1]) then
+            vim.lsp.start({
+              name = "Github Actions LSP",
+              cmd = add_tracing("github_actions", { local_overrides.github_actions_lsp }),
+              root_dir = vim.fs.dirname(path[1])
+            })
+          end
+        end
+      })
+    end
+
+    vim.api.nvim_create_autocmd("FileType", {
+      group = lsp,
+      pattern = "smithy",
+      callback = function()
+        local path = vim.fs.find({ "smithy-build.json" })
+        vim.lsp.start({
+          name = "Smithy LSP",
+          cmd = add_tracing("smithy", { 'cs', 'launch', 'com.disneystreaming.smithy:smithy-language-server:latest.release', '--', '0' }),
+          root_dir = vim.fs.dirname(path[1])
+        })
+      end,
     })
-  end,
-})
 
-local runtime_path = vim.split(package.path, ';')
-table.insert(runtime_path, "lua/?.lua")
-table.insert(runtime_path, "lua/?/init.lua")
+    local runtime_path = vim.split(package.path, ';')
+    table.insert(runtime_path, "lua/?.lua")
+    table.insert(runtime_path, "lua/?/init.lua")
 
-require 'lspconfig'.sumneko_lua.setup {
-  settings = {
-    Lua = {
-      runtime = {
-        -- Tell the language server which version of Lua you're using (most likely LuaJIT in the case of Neovim)
-        version = 'LuaJIT',
-        -- Setup your lua path
-        path = runtime_path,
+    require 'lspconfig'.sumneko_lua.setup {
+      settings = {
+        Lua = {
+          runtime = {
+            -- Tell the language server which version of Lua you're using (most likely LuaJIT in the case of Neovim)
+            version = 'LuaJIT',
+            -- Setup your lua path
+            path = runtime_path,
+          },
+          diagnostics = {
+            -- Get the language server to recognize the `vim` global
+            globals = { 'vim' },
+          },
+          workspace = {
+            -- Make the server aware of Neovim runtime files
+            library = vim.api.nvim_get_runtime_file("", true),
+          },
+          -- Do not send telemetry data containing a randomized but unique identifier
+          telemetry = {
+            enable = false,
+          },
+        },
       },
-      diagnostics = {
-        -- Get the language server to recognize the `vim` global
-        globals = { 'vim' },
-      },
-      workspace = {
-        -- Make the server aware of Neovim runtime files
-        library = vim.api.nvim_get_runtime_file("", true),
-      },
-      -- Do not send telemetry data containing a randomized but unique identifier
-      telemetry = {
-        enable = false,
-      },
-    },
-  },
+    }
+
+    if local_overrides.quickmaffs_lsp then
+      vim.api.nvim_create_autocmd("FileType", {
+        group = lsp,
+        pattern = "quickmaffs",
+        callback = function()
+          vim.lsp.start({
+            name = "Quickmaffs",
+            cmd = add_tracing("quickmaffs", { local_overrides.quickmaffs_lsp }),
+          })
+        end,
+      })
+
+
+      vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
+        pattern = { "*.qmf" },
+        callback = function() vim.cmd("setfiletype quickmaffs") end
+      })
+    end
+
+    if local_overrides.llvm_lsp then
+      vim.api.nvim_create_autocmd("FileType", {
+        group = lsp,
+        pattern = "lifelines",
+        callback = function()
+          vim.lsp.start({
+            name = "LLVM LSP",
+            cmd = add_tracing("llvm", { local_overrides.llvm_lsp }),
+          })
+        end
+      })
+    end
+
+    vim.cmd([[augroup lsp]])
+    vim.cmd([[autocmd!]])
+    vim.cmd([[autocmd FileType scala,sbt setlocal omnifunc=v:lua.vim.lsp.omnifunc]])
+    vim.cmd([[autocmd FileType scala,sbt,java lua require("metals").initialize_or_attach(Metals_config)]])
+    vim.cmd([[augroup end]])
+
+    vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
+      pattern = { "*.smithy" },
+      callback = function() vim.cmd("setfiletype smithy") end
+    })
+
+    vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
+      pattern = { "*.fs" },
+      callback = function() vim.cmd("setfiletype fsharp") end
+    })
+
+
+    vim.cmd([[autocmd FileType fsharp setlocal commentstring=//\ %s]])
+  end
 }
 
-if local_overrides.quickmaffs_lsp then
-  vim.api.nvim_create_autocmd("FileType", {
-    group = lsp,
-    pattern = "quickmaffs",
-    callback = function()
-      vim.lsp.start({
-        name = "Quickmaffs",
-        cmd = add_tracing("quickmaffs", { local_overrides.quickmaffs_lsp }),
-      })
-    end,
-  })
-
-
-  vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
-    pattern = { "*.qmf" },
-    callback = function() vim.cmd("setfiletype quickmaffs") end
-  })
-end
-
-if local_overrides.llvm_lsp then
-  vim.api.nvim_create_autocmd("FileType", {
-    group = lsp,
-    pattern = "lifelines",
-    callback = function()
-      vim.lsp.start({
-        name = "LLVM LSP",
-        cmd = add_tracing("llvm", { local_overrides.llvm_lsp }),
-      })
+local TELESCOPE = {
+  lsp_workspace_symbols = function()
+    local input = vim.fn.input("Query: ")
+    vim.api.nvim_command("normal :esc<CR>")
+    if not input or #input == 0 then
+      return
     end
-  })
-end
+    require("telescope.builtin").lsp_workspace_symbols({ query = input })
+  end,
+  setup = function()
 
-----------------------------------
--- VARIABLES ---------------------
-----------------------------------
--- g["mapleader"] = ","
-g["netrw_gx"] = "<cWORD>"
+    local B = require("telescope.builtin")
+    local EXT = require("telescope").extensions
 
--- plugin variables
--- polyglot's markdown settings
-g["vim_markdown_conceal"] = 0
-g["vim_markdown_conceal_code_blocks"] = 0
+    vim.keymap.set('n', '<leader>hv', B.help_tags)
+    vim.keymap.set('n', '<leader>ff', function() B.find_files({ layout_strategy = 'vertical' }) end)
+    vim.keymap.set('n', '<leader>fg', function() B.git_files({ layout_strategy = 'vertical' }) end)
+    vim.keymap.set('n', '<leader>lg', function() B.live_grep({ layout_strategy = 'vertical' }) end)
+    vim.keymap.set('n', 'gds', B.lsp_document_symbols)
+    vim.keymap.set('n', 'gws', function() B.lsp_dynamic_workspace_symbols({ path_display = { shorten = { len = 1, exclude = { 1, -1 } } }, layout_strategy = 'vertical' }) end)
+    vim.keymap.set('n', '<leader>mc', EXT.metals.commands)
 
-----------------------------------
--- OPTIONS -----------------------
-----------------------------------
-local indent = 2
-vim.o.shortmess = string.gsub(vim.o.shortmess, "F", "") .. "c"
-vim.o.path = vim.o.path .. "**"
+    local previewers = require("telescope.previewers")
 
--- global
--- opt("o", "termguicolors", true)
-opt("o", "hidden", true)
-opt("o", "showtabline", 1)
-opt("o", "updatetime", 300)
-opt("o", "showmatch", true)
-opt("o", "laststatus", 2)
-opt("o", "wildignore", ".git,*/node_modules/*,*/target/*,.metals,.bloop")
-opt("o", "ignorecase", true)
-opt("o", "smartcase", true)
-opt("o", "clipboard", "unnamed")
-opt("o", "completeopt", "menu,menuone,noselect")
-opt("o", "splitbelow", true)
-opt("o", "splitright", true)
-opt("o", "relativenumber", true)
-opt("o", "number", true)
+    local new_maker = function(filepath, bufnr, opts)
+      opts = opts or {}
 
--- window-scoped
-opt("w", "wrap", false)
-opt("w", "cursorline", true)
-opt("w", "signcolumn", "yes")
+      filepath = vim.fn.expand(filepath)
+      vim.loop.fs_stat(filepath, function(_, stat)
+        if not stat then return end
+        if stat.size > 100000 then
+          return
+        else
+          previewers.buffer_previewer_maker(filepath, bufnr, opts)
+        end
+      end)
+    end
 
--- buffer-scoped
-opt("b", "tabstop", indent)
-opt("b", "shiftwidth", indent)
-opt("b", "softtabstop", indent)
-opt("b", "expandtab", true)
-opt("b", "fileformat", "unix")
+    require("telescope").setup({
+      defaults = {
+        buffer_previewer_maker = new_maker,
+        file_ignore_patterns = { "target", "node_modules", "parser.c" },
+        prompt_prefix = "❯",
+        -- file_previewer = require("telescope.previewers").vim_buffer_cat.new,
+        -- grep_previewer = require("telescope.previewers").vim_buffer_vimgrep.new,
+      },
+      extensions = {
+        langoustine = {
+          command_prefix = { "langoustine-tracer-dev", "trace" }
+        }
+      }
+    })
 
--- MAPPINGS -----------------------
--- insert-mode mappings
--- map("n", "<leader>n", [[<cmd>lua require("settings.functions").toggle_nums()<CR>]])
-
--- normal-mode mappings
-map("n", "<leader>hs", ":nohlsearch<cr>")
-map("n", "<leader>xml", ":%!xmllint --format -<cr>")
-map("n", "<leader>fo", ":copen<cr>")
-map("n", "<leader>fc", ":cclose<cr>")
-map("n", "<leader>fn", ":cnext<cr>")
-map("n", "<leader>fp", ":cprevious<cr>")
-map("n", "<leader>tv", ":vnew | :te<cr>")
-
--- LSP
-map("n", "<leader>sf", [[<cmd>lua vim.lsp.buf.format { async = true }<CR>]])
-map("n", "gd", [[<cmd>lua vim.lsp.buf.definition()<CR>]])
-map("n", "K", [[<cmd>lua vim.lsp.buf.hover()<CR>]])
-map("v", "K", [[<Esc><cmd>lua require("metals").type_of_range()<CR>]])
-map("n", "gi", [[<cmd>lua vim.lsp.buf.implementation()<CR>]])
-map("n", "gr", [[<cmd>lua vim.lsp.buf.references()<CR>]])
-map("n", "<leader>sh", [[<cmd>lua require"lspsaga.signaturehelp".signature_help()<CR>]])
-map("n", "<leader>rn", [[<cmd>lua require"lspsaga.rename".rename()<CR>]])
-map("n", "<leader>ca", [[<cmd>lua require"lspsaga.codeaction".code_action()<CR>]])
-map("v", "<leader>ca", [[<cmd>lua require"lspsaga.codeaction".range_code_action()<CR>]])
-map("n", "<leader>ws", [[<cmd>lua require"metals".worksheet_hover()<CR>]])
-map("n", "<leader>rr", [[<cmd>lua vim.lsp.codelens.run()<CR>]])
-
-map("n", "<leader>tt", [[<cmd>lua require("metals.tvp").toggle_tree_view()<CR>]])
-map("n", "<leader>tr", [[<cmd>lua require("metals.tvp").reveal_in_tree()<CR>]])
-map("n", "<leader>ws", [[<cmd>lua require("metals").hover_worksheet({ border = "single" })<CR>]])
-
--- diagnostics
-map("n", "<leader>a", [[<cmd>lua vim.diagnostic.setqflist()<CR>]])
-map("n", "<leader>d", [[<cmd>lua vim.diagnostic.setloclist()<CR>]]) -- buffer diagnostics only
-map("n", "]c", [[<cmd>lua vim.diagnostic.goto_next()<CR>]])
-map("n", "[c", [[<cmd>lua vim.diagnostic.goto_prev()<CR>]])
-map("n", "<leader>ld", [[<cmd>lua vim.diagnostic.open_float(0, {scope = "line"})<CR>]])
-
--- telescope
-map("n", "<leader>ff", [[<cmd>lua require"telescope.builtin".find_files({layout_strategy='vertical'})<CR>]])
-map("n", "<leader>fg", [[<cmd>lua require"telescope.builtin".git_files({layout_strategy='vertical'})<CR>]])
-map("n", "<leader>lg", [[<cmd>lua require"telescope.builtin".live_grep({layout_strategy='vertical'})<CR>]])
-map("n", "gds", [[<cmd>lua require"telescope.builtin".lsp_document_symbols({layout_stratey='vertical'})<CR>]])
-map("n", "gws", [[<cmd>lua require"telescope.builtin".lsp_dynamic_workspace_symbols({layout_strategy='vertical'})<CR>]])
-map("n", "<leader>mc", [[<cmd>lua require("telescope").extensions.metals.commands()<CR>]])
-map("n", "<leader>fb", [[<cmd>lua require"telescope.builtin".file_browser({layout_strategy='vertical'})<CR>]])
-
--- nvim-dap
-map("n", "<leader>dc", [[<cmd>lua require"dap".continue()<CR>]])
-map("n", "<leader>dr", [[<cmd>lua require"dap".repl.toggle()<CR>]])
-map("n", "<leader>dtb", [[<cmd>lua require"dap".toggle_breakpoint()<CR>]])
-map("n", "<leader>dso", [[<cmd>lua require"dap".step_over()<CR>]])
-map("n", "<leader>dsi", [[<cmd>lua require"dap".step_into()<CR>]])
+    require("telescope").load_extension("fzy_native")
+  end
+}
 
 
--- nerdtree
+local VISUAL = {
+  setup = function()
 
-vim.cmd([[nnoremap <C-a> :NvimTreeFindFile<CR>]])
-vim.cmd([[nnoremap <C-t> :NvimTreeToggle<CR>]])
+    vim.cmd("colorscheme kanagawa")
 
--- navigation
-vim.cmd([[nnoremap <C-h> <C-w>h]])
-vim.cmd([[nnoremap <C-l> <C-w>l]])
-vim.cmd([[nnoremap <C-j> <C-w>j]])
-vim.cmd([[nnoremap <C-k> <C-w>k]])
+    vim.fn.sign_define("LspDiagnosticsSignError", { text = "▬" })
+    vim.fn.sign_define("LspDiagnosticsSignWarning", { text = "▬" })
+    vim.fn.sign_define("LspDiagnosticsSignInformation", { text = "▬" })
+    vim.fn.sign_define("LspDiagnosticsSignHint", { text = "▬" })
 
-----------------------------------
--- COMMANDS ----------------------
-----------------------------------
-cmd([[autocmd FileType * setlocal formatoptions-=c formatoptions-=r formatoptions-=o]])
-cmd([[autocmd BufReadPost,BufNewFile *.md,*.txt,COMMIT_EDITMSG set wrap linebreak nolist spell spelllang=en_gb]])
-cmd([[autocmd TermOpen * startinsert]])
+    vim.cmd([[hi! link LspReferenceText CursorColumn]])
+    vim.cmd([[hi! link LspReferenceRead CursorColumn]])
+    vim.cmd([[hi! link LspReferenceWrite CursorColumn]])
 
-cmd("colorscheme kanagawa")
+    vim.cmd([[hi! link LspSagaFinderSelection CursorColumn]])
+    vim.cmd([[hi! link LspSagaDocTruncateLine LspSagaHoverBorder]])
+    vim.cmd([[hi TreesitterContextBottom gui=underline guisp=Green]])
 
--- LSP
-cmd([[augroup lsp]])
-cmd([[autocmd!]])
-cmd([[autocmd FileType scala,sbt setlocal omnifunc=v:lua.vim.lsp.omnifunc]])
-cmd([[autocmd FileType scala,sbt,java lua require("metals").initialize_or_attach(Metals_config)]])
-cmd([[augroup end]])
+  end
+}
 
-vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
-  pattern = { "*.smithy" },
-  callback = function() vim.cmd("setfiletype smithy") end
-})
+local NVIM_DAP = {
+  setup = function()
+    vim.keymap.set("n", "<leader>dc", require "dap".continue)
+    vim.keymap.set("n", "<leader>dl", require "dap".run_last)
+    vim.keymap.set("n", "<leader>dr", require "dap".repl.toggle)
+    vim.keymap.set("n", "<leader>dtb", require "dap".toggle_breakpoint)
+    vim.keymap.set("n", "<leader>dso", require "dap".step_over)
+    vim.keymap.set("n", "<leader>dsi", require "dap".step_into)
+  end
+}
 
-vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
-  pattern = { "*.fs" },
-  callback = function() vim.cmd("setfiletype fsharp") end
-})
+local LSP_KEY_BINDINGS = {
+  setup = function()
+    vim.keymap.set("n", "<leader>sf", function() vim.lsp.buf.format { async = true } end)
+    vim.keymap.set("n", "gd", vim.lsp.buf.definition)
+    vim.keymap.set("n", "K", vim.lsp.buf.hover)
+    vim.keymap.set("n", "gi", vim.lsp.buf.implementation)
+    vim.keymap.set("n", "gr", vim.lsp.buf.references)
+    vim.keymap.set("n", "<leader>rr", vim.lsp.codelens.run)
+    vim.keymap.set("n", "<leader>a", vim.diagnostic.setqflist)
+    vim.keymap.set("n", "<leader>d", vim.diagnostic.setloclist)
+    vim.keymap.set("n", "]c", vim.diagnostic.goto_next)
+    vim.keymap.set("n", "[c", vim.diagnostic.goto_prev)
+    vim.keymap.set("n", "<leader>ld", function() vim.diagnostic.open_float(0, { scope = "line" }) end)
+  end
+}
+
+local LSP_SAGA = {
+  setup = function()
+    require("lspsaga").init_lsp_saga({
+      server_filetype_map = { metals = { "sbt", "scala" } },
+      code_action_prompt = { virtual_text = true },
+    })
+    vim.keymap.set("n", "<leader>sh", require "lspsaga.signaturehelp".signature_help)
+    vim.keymap.set("n", "<leader>rn", require "lspsaga.rename".rename)
+    vim.keymap.set("n", "<leader>ca", require "lspsaga.codeaction".code_action)
+    vim.keymap.set("v", "<leader>ca", require "lspsaga.codeaction".range_code_action)
+
+  end
+}
+
+local OPTIONS = {
+  setup = function()
+    vim.g.netrw_gx = "<cWORD>"
+    vim.g.vim_markdown_conceal = 0
+    vim.g.vim_markdown_conceal_code_blocks = 0
+
+    local indent = 2
+    vim.o.shortmess = string.gsub(vim.o.shortmess, "F", "") .. "c"
+    vim.o.path = vim.o.path .. "**"
+
+    vim.opt.clipboard = "unnamed"
+    vim.opt.completeopt = "menu,menuone,noselect"
+    vim.opt.cursorline = true
+    vim.opt.expandtab = true
+    vim.opt.fileformat = "unix"
+    vim.opt.hidden = true
+    vim.opt.ignorecase = true
+    vim.opt.laststatus = 2
+    vim.opt.modeline = false
+    vim.opt.number = true
+    vim.opt.relativenumber = true
+    vim.opt.shiftwidth = indent
+    vim.opt.showmatch = true
+    vim.opt.showtabline = 1
+    vim.opt.signcolumn = "yes"
+    vim.opt.smartcase = true
+    vim.opt.softtabstop = indent
+    vim.opt.splitbelow = true
+    vim.opt.splitright = true
+    vim.opt.tabstop = indent
+    vim.opt.updatetime = 300
+    vim.opt.wildignore = ".git,*/node_modules/*,*/target/*,.metals,.bloop"
+    vim.opt.wrap = false
+
+    vim.keymap.set("n", "<leader>tv", ":vnew | :te<cr>")
+    vim.keymap.set("n", "<leader>vt", ":tabnew<CR>")
+
+    -- navigation
+    vim.cmd([[nnoremap <C-h> <C-w>h]])
+    vim.cmd([[nnoremap <C-l> <C-w>l]])
+    vim.cmd([[nnoremap <C-j> <C-w>j]])
+    vim.cmd([[nnoremap <C-k> <C-w>k]])
+
+    ----------------------------------
+    -- COMMANDS ----------------------
+    ----------------------------------
+    vim.cmd([[autocmd FileType * setlocal formatoptions-=c formatoptions-=r formatoptions-=o]])
+    vim.cmd([[autocmd BufReadPost,BufNewFile *.md,*.txt,COMMIT_EDITMSG set wrap linebreak nolist spell spelllang=en_gb]])
+    vim.cmd([[autocmd TermOpen * startinsert]])
+  end
+}
 
 
-cmd([[autocmd FileType fsharp setlocal commentstring=//\ %s]])
-----------------------------------
--- LSP Settings ------------------
-----------------------------------
-fn.sign_define("LspDiagnosticsSignError", { text = "▬" })
-fn.sign_define("LspDiagnosticsSignWarning", { text = "▬" })
-fn.sign_define("LspDiagnosticsSignInformation", { text = "▬" })
-fn.sign_define("LspDiagnosticsSignHint", { text = "▬" })
-
-vim.cmd([[hi! link LspReferenceText CursorColumn]])
-vim.cmd([[hi! link LspReferenceRead CursorColumn]])
-vim.cmd([[hi! link LspReferenceWrite CursorColumn]])
-
-vim.cmd([[hi! link LspSagaFinderSelection CursorColumn]])
-vim.cmd([[hi! link LspSagaDocTruncateLine LspSagaHoverBorder]])
-vim.cmd([[hi TreesitterContextBottom gui=underline guisp=Green]])
+OPTIONS.setup()
+VISUAL.setup()
+LSP_SERVERS.setup()
+TREE_SITTER.setup()
+NVIM_TREE.setup()
+TELESCOPE.setup()
+METALS.setup()
+NVIM_DAP.setup()
+LSP_KEY_BINDINGS.setup()
+LSP_SAGA.setup()
+CMP.setup()
