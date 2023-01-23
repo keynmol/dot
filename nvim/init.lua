@@ -580,6 +580,10 @@ local OPTIONS = {
 
     vim.keymap.set("n", "<leader>tv", ":vnew | :te<cr>")
     vim.keymap.set("n", "<leader>vt", ":tabnew<CR>")
+    vim.keymap.set("n", "<leader>cn", ":cnext<CR>")
+    vim.keymap.set("n", "<leader>cp", ":cprev<CR>")
+    vim.keymap.set("n", "<leader>cs", ":copen<CR>")
+    vim.keymap.set("n", "<leader>cc", ":cclose<CR>")
 
     -- navigation
     vim.cmd([[nnoremap <C-h> <C-w>h]])
