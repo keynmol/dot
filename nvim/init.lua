@@ -1,7 +1,103 @@
 vim.cmd([[packadd packer.nvim]])
 
-require("plugins")
-require('lualine').setup({})
+local PLUGINS = {
+  setup = function()
+
+    return require("packer").startup(function(use)
+      use({
+          "kylechui/nvim-surround",
+          tag = "*", -- Use for stability; omit to use `main` branch for the latest features
+          config = function()
+              require("nvim-surround").setup({
+                  -- Configuration here, or leave empty to use defaults
+              })
+          end
+      })
+      use {
+        'nvim-lualine/lualine.nvim',
+        requires = { 'kyazdani42/nvim-web-devicons', opt = true }
+      }
+      -- use({ "glepnir/galaxyline.nvim" })
+      use({ "kkharji/lspsaga.nvim" })
+      use({ "shime/vim-livedown" })
+      -- auto complete
+      use({
+        "hrsh7th/nvim-cmp",
+        requires = {
+          { "hrsh7th/cmp-buffer" },
+          { "hrsh7th/cmp-nvim-lsp" },
+          { "hrsh7th/cmp-path" },
+          { "hrsh7th/cmp-vsnip" },
+          { "hrsh7th/vim-vsnip" },
+          { "hrsh7th/vim-vsnip-integ" },
+        },
+      })
+
+      use({ "kevinhwang91/nvim-bqf" })
+      use({ 'kyazdani42/nvim-web-devicons' })
+      use({ 'kyazdani42/nvim-tree.lua' })
+
+      use({ "mfussenegger/nvim-dap" })
+      use({ "neovim/nvim-lspconfig" })
+      use({
+        "nvim-telescope/telescope.nvim",
+        requires = {
+          { "nvim-lua/popup.nvim" },
+          { "nvim-lua/plenary.nvim" },
+          { "nvim-telescope/telescope-fzy-native.nvim" },
+        },
+      })
+      use({ "scalameta/nvim-metals" })
+      use({ "sheerun/vim-polyglot" })
+      use({ "tpope/vim-fugitive" })
+      use({ "ziglang/zig.vim" })
+      use({ "tpope/vim-commentary" })
+      use({ "wbthomason/packer.nvim", opt = true })
+      use({ "rebelot/kanagawa.nvim" })
+      -- use({ "cormacrelf/vim-colors-github" })
+      use({ 'lukas-reineke/indent-blankline.nvim' })
+      use {
+        'nvim-treesitter/nvim-treesitter',
+      }
+      use 'nvim-treesitter/nvim-treesitter-context'
+      use {
+        'nvim-treesitter/playground'
+      }
+      use({
+        "https://git.sr.ht/~whynothugo/lsp_lines.nvim",
+        config = function()
+          require("lsp_lines").setup()
+        end,
+      })
+
+      use 'neandertech/nvim-langoustine'
+    end)
+
+
+  end
+}
+
+local LUALINE = {
+  setup = function()
+    local function metals_status()
+      return vim.g["metals_status"] or ""
+    end
+
+    require('lualine').setup(
+      {
+      sections = {
+        lualine_a = { 'mode' },
+        lualine_b = { 'branch', 'diff' },
+        lualine_c = { 'filename', metals_status },
+        lualine_x = { 'encoding', 'filetype' },
+        lualine_y = { 'progress' },
+        lualine_z = { 'location' }
+      }
+    }
+    )
+
+  end
+}
 
 local FUNCTIONS = {
   prequire = function(m, df)
@@ -206,7 +302,7 @@ local function add_tracing(name, raw_cmd)
       return raw_cmd
     else
       if tcf.enabled[name] and tcf.enabled[name] == true then
-        return FUNCTIONS.mergelists(tcf.cmd, raw_cmd)
+        return FUNCTIONS.merge(tcf.cmd, raw_cmd)
       else
         return raw_cmd
       end
@@ -231,10 +327,9 @@ local TREE_SITTER = {
 
     parser_config.smithy = {
       install_info = {
-        url = "https://github.com/indoorvivants/tree-sitter-smithy", -- local path or git repo
+        url = "~/projects/tree-sitter-smithy", -- local path or git repo
         files = { "src/parser.c" },
         -- optional entries:
-        branch = "main", -- default branch in case of git repo if different from master
         generate_requires_npm = true, -- if stand-alone parser without npm dependencies
         requires_generate_from_grammar = true, -- if folder contains pre-generated src/parser.c
       },
@@ -600,7 +695,7 @@ local OPTIONS = {
   end
 }
 
-
+PLUGINS.setup()
 OPTIONS.setup()
 VISUAL.setup()
 LSP_SERVERS.setup()
@@ -612,3 +707,4 @@ NVIM_DAP.setup()
 LSP_KEY_BINDINGS.setup()
 LSP_SAGA.setup()
 CMP.setup()
+LUALINE.setup()
