@@ -4,23 +4,12 @@ local PLUGINS = {
   setup = function()
 
     return require("packer").startup(function(use)
-      use({
-          "kylechui/nvim-surround",
-          tag = "*", -- Use for stability; omit to use `main` branch for the latest features
-          config = function()
-              require("nvim-surround").setup({
-                  -- Configuration here, or leave empty to use defaults
-              })
-          end
-      })
       use {
         'nvim-lualine/lualine.nvim',
         requires = { 'kyazdani42/nvim-web-devicons', opt = true }
       }
-      -- use({ "glepnir/galaxyline.nvim" })
       use({ "kkharji/lspsaga.nvim" })
       use({ "shime/vim-livedown" })
-      -- auto complete
       use({
         "hrsh7th/nvim-cmp",
         requires = {
@@ -109,8 +98,8 @@ local FUNCTIONS = {
   merge = function(a, b)
     local ab = {}
 
-    table.foreach(a, function(k, v) table.insert(ab, v) end)
-    table.foreach(b, function(k, v) table.insert(ab, v) end)
+    table.foreach(a, function(_, v) table.insert(ab, v) end)
+    table.foreach(b, function(_, v) table.insert(ab, v) end)
 
     return ab
   end
@@ -323,17 +312,6 @@ local TREE_SITTER = {
       },
       filetype = "scala", -- if filetype does not agrees with parser name
       used_by = { "scala", "sbt" } -- additional filetypes that use this parser
-    }
-
-    parser_config.smithy = {
-      install_info = {
-        url = "~/projects/tree-sitter-smithy", -- local path or git repo
-        files = { "src/parser.c" },
-        -- optional entries:
-        generate_requires_npm = true, -- if stand-alone parser without npm dependencies
-        requires_generate_from_grammar = true, -- if folder contains pre-generated src/parser.c
-      },
-      filetype = "smithy" -- if filetype does not agrees with parser name
     }
 
     require 'nvim-treesitter.configs'.setup {
