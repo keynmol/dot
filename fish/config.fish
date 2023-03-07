@@ -16,6 +16,7 @@ alias scli="scala-cli"
 alias repl="scala-cli repl"
 alias sbtn="sbt --client"
 
+
 # Commands to run in interactive sessions can go here
 fish_add_path $HOME/.tools
 fish_add_path $HOME/.cargo/bin
@@ -39,4 +40,10 @@ function fish_prompt
     set_color FF0
     printf '> '
     set_color normal
+end
+
+function clone -a repo_url
+    mkdir -p "$repo_url" &&\
+    gh repo clone $repo_url $repo_url &&\
+    cd $repo_url
 end

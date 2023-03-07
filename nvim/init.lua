@@ -120,7 +120,7 @@ local CMP = {
         { name = "nvim_lsp", priority = 100 },
         { name = "buffer" },
         { name = "path" },
-        { name = "vsnip" },
+        -- { name = "vsnip" },
       },
       mapping = {
         ["<CR>"] = cmp.mapping.confirm({ select = true }),
@@ -139,27 +139,24 @@ local CMP = {
           end
         end,
       },
+      preselect = cmp.PreselectMode.None, -- disable preselection
       sorting = {
+        priority_weight = 2,
         comparators = {
-          compare.exact,
-          compare.score,
-          function(a, b)
-            if a:get_kind() == 5 and b:get_kind() == 2 then
-              return true
-            elseif a:get_kind() == 2 and b:get_kind() == 5 then
-              return false
-            end
-            return nil
-          end,
-          compare.kind,
+          compare.offset, -- we still want offset to be higher to order after 3rd letter
+          compare.score, -- same as above
+          compare.sort_text, -- add higher precedence for sort_text, it must be above `kind`
           compare.recently_used,
-          compare.locality,
-          compare.offset,
-          compare.sort_text,
+          compare.kind,
           compare.length,
-          compare.order
-        }
-      }
+          compare.order,
+        },
+      },
+      -- if you want to add preselection you have to set completeopt to new values
+      completion = {
+        -- completeopt = 'menu,menuone,noselect', <---- this is default value,
+        completeopt = 'menu,menuone', -- remove noselect
+      },
 
     })
   end
@@ -357,32 +354,32 @@ local LSP_SERVERS = {
 
     local lsp = vim.api.nvim_create_augroup("LSP", { clear = true })
 
-    if local_overrides.grammar_js_lsp then
-      vim.api.nvim_create_autocmd("FileType", {
-        group = lsp,
-        pattern = "tree-sitter-grammar",
-        callback = function()
-          local path = vim.fs.find({ "grammar.js" })
-          if (path[1]) then
-            vim.lsp.start({
-              name = "Grammar.js LSP",
-              cmd = add_tracing("grammarJs", { local_overrides.grammar_js_lsp }),
-              root_dir = vim.fs.dirname(path[1])
-            })
-          end
-        end,
-      })
+    -- if local_overrides.grammar_js_lsp then
+    vim.api.nvim_create_autocmd("FileType", {
+      group = lsp,
+      pattern = "tree-sitter-grammar",
+      callback = function()
+        local path = vim.fs.find({ "grammar.js" })
+        if (path[1]) then
+          vim.lsp.start({
+            name = "Grammar.js LSP",
+            cmd = { 'tree-sitter-grammar-lsp' },
+            root_dir = vim.fs.dirname(path[1])
+          })
+        end
+      end,
+    })
 
-      vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
-        pattern = { "grammar.js", "*/corpus/*.txt" },
-        callback = function() vim.cmd("setfiletype tree-sitter-grammar") end
-      })
+    vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
+      pattern = { "grammar.js", "*/corpus/*.txt" },
+      callback = function() vim.cmd("setfiletype tree-sitter-grammar") end
+    })
 
-      vim.api.nvim_create_autocmd({ "BufReadPost" }, {
-        pattern = { "grammar.js" },
-        command = "set syntax=javascript"
-      })
-    end
+    vim.api.nvim_create_autocmd({ "BufReadPost" }, {
+      pattern = { "grammar.js" },
+      command = "set syntax=javascript"
+    })
+    -- end
 
 
     if local_overrides.github_actions_lsp then
@@ -603,6 +600,13 @@ local LSP_KEY_BINDINGS = {
   end
 }
 
+local KEY_BINDINGS = {
+  setup = function()
+    vim.keymap.set("n", "<leader>ht", function() vim.api.nvim_put({ '#' }, 'c', true, true) end)
+  end
+}
+
+
 local LSP_SAGA = {
   setup = function()
     require("lspsaga").init_lsp_saga({
@@ -686,3 +690,4 @@ LSP_KEY_BINDINGS.setup()
 LSP_SAGA.setup()
 CMP.setup()
 LUALINE.setup()
+KEY_BINDINGS.setup()
