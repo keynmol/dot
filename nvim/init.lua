@@ -10,6 +10,7 @@ local PLUGINS = {
       }
       use({ "kkharji/lspsaga.nvim" })
       use({ "shime/vim-livedown" })
+      use({"earthly/earthly.vim"})
       use({
         "hrsh7th/nvim-cmp",
         requires = {
@@ -187,6 +188,7 @@ local METALS = {
         "akka.stream.javadsl",
       },
       serverVersion = 'latest.snapshot',
+      enableSemanticHighlighting = true
     }
 
     Metals_config.init_options.statusBarProvider = "on"
@@ -335,6 +337,7 @@ local LSP_SERVERS = {
     require 'lspconfig'.ocamllsp.setup {}
     require 'lspconfig'.fsautocomplete.setup {}
     require 'lspconfig'.html.setup {}
+    require'lspconfig'.crystalline.setup{}
     local capabilities = vim.lsp.protocol.make_client_capabilities()
     capabilities.textDocument.completion.completionItem.snippetSupport = true
 

@@ -25,6 +25,7 @@ fish_add_path $HOME/.tools/node-v16.13.1-darwin-arm64/bin/
 fish_add_path $HOME/.fly/bin
 fish_add_path $HOME/.tools/current_node/bin
 fish_add_path $HOME/.tools/sumneko-lua-language-server/bin/
+fish_add_path "$HOME/Library/Application Support/Coursier/bin"
 
 set -gx EDITOR nvim
 set -gx VISUAL $EDITOR
