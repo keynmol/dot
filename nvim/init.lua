@@ -2,15 +2,19 @@ vim.cmd([[packadd packer.nvim]])
 
 local PLUGINS = {
   setup = function()
-
     return require("packer").startup(function(use)
       use {
         'nvim-lualine/lualine.nvim',
-        requires = { 'kyazdani42/nvim-web-devicons', opt = true }
-      }
+        requires = { 'kyazdani42/nvim-web-devicons', opt = true } }
+      use({
+        "iamcco/markdown-preview.nvim",
+        run = "cd app && npm install",
+        setup = function() vim.g.mkdp_filetypes = { "markdown" } end,
+        ft = { "markdown" },
+      })
       use({ "kkharji/lspsaga.nvim" })
       use({ "shime/vim-livedown" })
-      use({"earthly/earthly.vim"})
+      use({ "earthly/earthly.vim" })
       use({
         "hrsh7th/nvim-cmp",
         requires = {
@@ -62,8 +66,6 @@ local PLUGINS = {
 
       use 'neandertech/nvim-langoustine'
     end)
-
-
   end
 }
 
@@ -75,17 +77,25 @@ local LUALINE = {
 
     require('lualine').setup(
       {
-      sections = {
-        lualine_a = { 'mode' },
-        lualine_b = { 'branch', 'diff' },
-        lualine_c = { 'filename', metals_status },
-        lualine_x = { 'encoding', 'filetype' },
-        lualine_y = { 'progress' },
-        lualine_z = { 'location' }
+        sections = {
+          lualine_a = { 'mode' },
+          lualine_b = { 'branch', 'diff' },
+          lualine_c = { 'filename', {
+            'diagnostics',
+            sources = { 'nvim_diagnostic' },
+            symbols = { error = ' ', warn = ' ', info = ' ' },
+            diagnostics_color = {
+              color_error = { fg = '#ec5f67' },
+              color_warn = { fg = '#ECBE7B' },
+              color_info = { fg = '#008080' },
+            }
+          }, metals_status },
+          lualine_x = { 'encoding', 'filetype' },
+          lualine_y = { 'progress' },
+          lualine_z = { 'location' }
+        }
       }
-    }
     )
-
   end
 }
 
@@ -144,8 +154,8 @@ local CMP = {
       sorting = {
         priority_weight = 2,
         comparators = {
-          compare.offset, -- we still want offset to be higher to order after 3rd letter
-          compare.score, -- same as above
+          compare.offset,    -- we still want offset to be higher to order after 3rd letter
+          compare.score,     -- same as above
           compare.sort_text, -- add higher precedence for sort_text, it must be above `kind`
           compare.recently_used,
           compare.kind,
@@ -242,17 +252,82 @@ local METALS = {
 }
 
 local NVIM_TREE = {
+  on_attach = function(bufnr)
+    local api = require('nvim-tree.api')
+
+    local function opts(desc)
+      return { desc = 'nvim-tree: ' .. desc, buffer = bufnr, noremap = true, silent = true, nowait = true }
+    end
+
+
+    -- Default mappings. Feel free to modify or remove as you wish.
+    --
+    -- BEGIN_DEFAULT_ON_ATTACH
+    vim.keymap.set('n', '<C-]>', api.tree.change_root_to_node, opts('CD'))
+    vim.keymap.set('n', '<C-e>', api.node.open.replace_tree_buffer, opts('Open: In Place'))
+    vim.keymap.set('n', '<C-k>', api.node.show_info_popup, opts('Info'))
+    vim.keymap.set('n', '<C-r>', api.fs.rename_sub, opts('Rename: Omit Filename'))
+    vim.keymap.set('n', '<C-t>', api.node.open.tab, opts('Open: New Tab'))
+    vim.keymap.set('n', '<C-v>', api.node.open.vertical, opts('Open: Vertical Split'))
+    vim.keymap.set('n', '<C-x>', api.node.open.horizontal, opts('Open: Horizontal Split'))
+    vim.keymap.set('n', '<BS>', api.node.navigate.parent_close, opts('Close Directory'))
+    vim.keymap.set('n', '<CR>', api.node.open.edit, opts('Open'))
+    vim.keymap.set('n', '<Tab>', api.node.open.preview, opts('Open Preview'))
+    vim.keymap.set('n', '>', api.node.navigate.sibling.next, opts('Next Sibling'))
+    vim.keymap.set('n', '<', api.node.navigate.sibling.prev, opts('Previous Sibling'))
+    vim.keymap.set('n', '.', api.node.run.cmd, opts('Run Command'))
+    vim.keymap.set('n', '-', api.tree.change_root_to_parent, opts('Up'))
+    vim.keymap.set('n', 'a', api.fs.create, opts('Create'))
+    vim.keymap.set('n', 'bmv', api.marks.bulk.move, opts('Move Bookmarked'))
+    vim.keymap.set('n', 'B', api.tree.toggle_no_buffer_filter, opts('Toggle No Buffer'))
+    vim.keymap.set('n', 'c', api.fs.copy.node, opts('Copy'))
+    vim.keymap.set('n', 'C', api.tree.toggle_git_clean_filter, opts('Toggle Git Clean'))
+    vim.keymap.set('n', '[c', api.node.navigate.git.prev, opts('Prev Git'))
+    vim.keymap.set('n', ']c', api.node.navigate.git.next, opts('Next Git'))
+    vim.keymap.set('n', 'd', api.fs.remove, opts('Delete'))
+    vim.keymap.set('n', 'D', api.fs.trash, opts('Trash'))
+    vim.keymap.set('n', 'E', api.tree.expand_all, opts('Expand All'))
+    vim.keymap.set('n', 'e', api.fs.rename_basename, opts('Rename: Basename'))
+    vim.keymap.set('n', ']e', api.node.navigate.diagnostics.next, opts('Next Diagnostic'))
+    vim.keymap.set('n', '[e', api.node.navigate.diagnostics.prev, opts('Prev Diagnostic'))
+    vim.keymap.set('n', 'F', api.live_filter.clear, opts('Clean Filter'))
+    vim.keymap.set('n', 'f', api.live_filter.start, opts('Filter'))
+    vim.keymap.set('n', 'g?', api.tree.toggle_help, opts('Help'))
+    vim.keymap.set('n', 'gy', api.fs.copy.absolute_path, opts('Copy Absolute Path'))
+    vim.keymap.set('n', 'H', api.tree.toggle_hidden_filter, opts('Toggle Dotfiles'))
+    vim.keymap.set('n', 'I', api.tree.toggle_gitignore_filter, opts('Toggle Git Ignore'))
+    vim.keymap.set('n', 'J', api.node.navigate.sibling.last, opts('Last Sibling'))
+    vim.keymap.set('n', 'K', api.node.navigate.sibling.first, opts('First Sibling'))
+    vim.keymap.set('n', 'm', api.marks.toggle, opts('Toggle Bookmark'))
+    vim.keymap.set('n', 'o', api.node.open.edit, opts('Open'))
+    vim.keymap.set('n', 'O', api.node.open.no_window_picker, opts('Open: No Window Picker'))
+    vim.keymap.set('n', 'p', api.fs.paste, opts('Paste'))
+    vim.keymap.set('n', 'P', api.node.navigate.parent, opts('Parent Directory'))
+    vim.keymap.set('n', 'q', api.tree.close, opts('Close'))
+    vim.keymap.set('n', 'r', api.fs.rename, opts('Rename'))
+    vim.keymap.set('n', 'R', api.tree.reload, opts('Refresh'))
+    vim.keymap.set('n', 's', api.node.run.system, opts('Run System'))
+    vim.keymap.set('n', 'S', api.tree.search_node, opts('Search'))
+    vim.keymap.set('n', 'U', api.tree.toggle_custom_filter, opts('Toggle Hidden'))
+    vim.keymap.set('n', 'W', api.tree.collapse_all, opts('Collapse'))
+    vim.keymap.set('n', 'x', api.fs.cut, opts('Cut'))
+    vim.keymap.set('n', 'y', api.fs.copy.filename, opts('Copy Name'))
+    vim.keymap.set('n', 'Y', api.fs.copy.relative_path, opts('Copy Relative Path'))
+    vim.keymap.set('n', '<2-LeftMouse>', api.node.open.edit, opts('Open'))
+    vim.keymap.set('n', '<2-RightMouse>', api.tree.change_root_to_node, opts('CD'))
+    -- END_DEFAULT_ON_ATTACH
+
+
+    -- Mappings migrated from view.mappings.list
+    --
+    -- You will need to insert "your code goes here" for any mappings with a custom action_cb
+    vim.keymap.set('n', 'U', api.tree.change_root_to_parent, opts('Up'))
+  end,
+
   setup = function()
     require("nvim-tree").setup({
+      on_attach = on_attach,
       sort_by = "case_sensitive",
-      view = {
-        adaptive_size = true,
-        mappings = {
-          list = {
-            { key = "U", action = "dir_up" },
-          },
-        },
-      },
       renderer = {
         group_empty = true,
       },
@@ -282,7 +357,8 @@ local overriden = function(key, default)
 end
 
 local function add_tracing(name, raw_cmd)
-  if not local_overrides.tracing then return raw_cmd
+  if not local_overrides.tracing then
+    return raw_cmd
   else
     local tcf = local_overrides.tracing
     if not tcf.cmd or not tcf.enabled then
@@ -309,14 +385,14 @@ local TREE_SITTER = {
         files = { "src/parser.c", "src/scanner.c" },
         requires_generate_from_grammar = false, -- requires_generate_from_grammar = true, -- if folder contains pre-generated src/parser.c
       },
-      filetype = "scala", -- if filetype does not agrees with parser name
-      used_by = { "scala", "sbt" } -- additional filetypes that use this parser
+      filetype = "scala",                       -- if filetype does not agrees with parser name
+      used_by = { "scala", "sbt" }              -- additional filetypes that use this parser
     }
 
     require 'nvim-treesitter.configs'.setup {
       sync_install = false, -- install languages synchronously (only applied to `ensure_installed`)
       highlight = {
-        enable = true, -- false will disable the whole extension
+        enable = true,      -- false will disable the whole extension
         additional_vim_regex_highlighting = false,
       },
     }
@@ -325,11 +401,6 @@ local TREE_SITTER = {
 
 
 
-require("indent_blankline").setup {
-  show_current_context = true,
-  show_current_context_start = true,
-}
-
 local LSP_SERVERS = {
   setup = function()
     require 'lspconfig'.clangd.setup {}
@@ -337,7 +408,9 @@ local LSP_SERVERS = {
     require 'lspconfig'.ocamllsp.setup {}
     require 'lspconfig'.fsautocomplete.setup {}
     require 'lspconfig'.html.setup {}
-    require'lspconfig'.crystalline.setup{}
+    require 'lspconfig'.crystalline.setup {}
+    require 'lspconfig'.gopls.setup {}
+    require 'lspconfig'.tsserver.setup {}
     local capabilities = vim.lsp.protocol.make_client_capabilities()
     capabilities.textDocument.completion.completionItem.snippetSupport = true
 
@@ -409,7 +482,8 @@ local LSP_SERVERS = {
         local path = vim.fs.find({ "smithy-build.json" })
         vim.lsp.start({
           name = "Smithy LSP",
-          cmd = add_tracing("smithy", { 'cs', 'launch', 'com.disneystreaming.smithy:smithy-language-server:latest.release', '--', '0' }),
+          cmd = add_tracing("smithy",
+            { 'cs', 'launch', 'com.disneystreaming.smithy:smithy-language-server:latest.release', '--', '0' }),
           root_dir = vim.fs.dirname(path[1])
         })
       end,
@@ -419,14 +493,12 @@ local LSP_SERVERS = {
     table.insert(runtime_path, "lua/?.lua")
     table.insert(runtime_path, "lua/?/init.lua")
 
-    require 'lspconfig'.sumneko_lua.setup {
+    require 'lspconfig'.lua_ls.setup {
       settings = {
         Lua = {
           runtime = {
             -- Tell the language server which version of Lua you're using (most likely LuaJIT in the case of Neovim)
             version = 'LuaJIT',
-            -- Setup your lua path
-            path = runtime_path,
           },
           diagnostics = {
             -- Get the language server to recognize the `vim` global
@@ -443,7 +515,6 @@ local LSP_SERVERS = {
         },
       },
     }
-
     if local_overrides.quickmaffs_lsp then
       vim.api.nvim_create_autocmd("FileType", {
         group = lsp,
@@ -507,7 +578,6 @@ local TELESCOPE = {
     require("telescope.builtin").lsp_workspace_symbols({ query = input })
   end,
   setup = function()
-
     local B = require("telescope.builtin")
     local EXT = require("telescope").extensions
 
@@ -516,7 +586,9 @@ local TELESCOPE = {
     vim.keymap.set('n', '<leader>fg', function() B.git_files({ layout_strategy = 'vertical' }) end)
     vim.keymap.set('n', '<leader>lg', function() B.live_grep({ layout_strategy = 'vertical' }) end)
     vim.keymap.set('n', 'gds', B.lsp_document_symbols)
-    vim.keymap.set('n', 'gws', function() B.lsp_dynamic_workspace_symbols({ path_display = { shorten = { len = 1, exclude = { 1, -1 } } }, layout_strategy = 'vertical' }) end)
+    vim.keymap.set('n', 'gws',
+      function() B.lsp_dynamic_workspace_symbols({ path_display = { shorten = { len = 1, exclude = { 1, -1 } } },
+          layout_strategy = 'vertical' }) end)
     vim.keymap.set('n', '<leader>mc', EXT.metals.commands)
 
     local previewers = require("telescope.previewers")
@@ -557,7 +629,6 @@ local TELESCOPE = {
 
 local VISUAL = {
   setup = function()
-
     vim.cmd("colorscheme kanagawa")
 
     vim.fn.sign_define("LspDiagnosticsSignError", { text = "▬" })
@@ -572,7 +643,6 @@ local VISUAL = {
     vim.cmd([[hi! link LspSagaFinderSelection CursorColumn]])
     vim.cmd([[hi! link LspSagaDocTruncateLine LspSagaHoverBorder]])
     vim.cmd([[hi TreesitterContextBottom gui=underline guisp=Green]])
-
   end
 }
 
@@ -620,7 +690,6 @@ local LSP_SAGA = {
     vim.keymap.set("n", "<leader>rn", require "lspsaga.rename".rename)
     vim.keymap.set("n", "<leader>ca", require "lspsaga.codeaction".code_action)
     vim.keymap.set("v", "<leader>ca", require "lspsaga.codeaction".range_code_action)
-
   end
 }
 
@@ -677,6 +746,11 @@ local OPTIONS = {
     vim.cmd([[autocmd FileType * setlocal formatoptions-=c formatoptions-=r formatoptions-=o]])
     vim.cmd([[autocmd BufReadPost,BufNewFile *.md,*.txt,COMMIT_EDITMSG set wrap linebreak nolist spell spelllang=en_gb]])
     vim.cmd([[autocmd TermOpen * startinsert]])
+  end
+}
+
+local INDENT_BLANKLINE = {
+  setup = function()
   end
 }
 
