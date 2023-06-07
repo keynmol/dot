@@ -12,7 +12,20 @@ local PLUGINS = {
         setup = function() vim.g.mkdp_filetypes = { "markdown" } end,
         ft = { "markdown" },
       })
-      use({ "kkharji/lspsaga.nvim" })
+      use({
+        "nvimdev/lspsaga.nvim",
+        opt = true,
+        branch = "main",
+        event = "LspAttach",
+        config = function()
+          require("lspsaga").setup({})
+        end,
+        requires = {
+          { "nvim-tree/nvim-web-devicons" },
+          --Please make sure you install markdown and markdown_inline parser
+          { "nvim-treesitter/nvim-treesitter" }
+        }
+      })
       use({ "shime/vim-livedown" })
       use({ "earthly/earthly.vim" })
       use({
@@ -587,8 +600,12 @@ local TELESCOPE = {
     vim.keymap.set('n', '<leader>lg', function() B.live_grep({ layout_strategy = 'vertical' }) end)
     vim.keymap.set('n', 'gds', B.lsp_document_symbols)
     vim.keymap.set('n', 'gws',
-      function() B.lsp_dynamic_workspace_symbols({ path_display = { shorten = { len = 1, exclude = { 1, -1 } } },
-          layout_strategy = 'vertical' }) end)
+      function()
+        B.lsp_dynamic_workspace_symbols({
+          path_display = { shorten = { len = 1, exclude = { 1, -1 } } },
+          layout_strategy = 'vertical'
+        })
+      end)
     vim.keymap.set('n', '<leader>mc', EXT.metals.commands)
 
     local previewers = require("telescope.previewers")
@@ -669,7 +686,12 @@ local LSP_KEY_BINDINGS = {
     vim.keymap.set("n", "<leader>d", vim.diagnostic.setloclist)
     vim.keymap.set("n", "]c", vim.diagnostic.goto_next)
     vim.keymap.set("n", "[c", vim.diagnostic.goto_prev)
+    vim.keymap.set("n", "]e", function() vim.diagnostic.goto_next { severity = vim.diagnostic.severity.ERROR } end)
+    vim.keymap.set("n", "[e", function() vim.diagnostic.goto_prev { severity = vim.diagnostic.severity.ERROR } end)
+    vim.keymap.set("n", "]w", function() vim.diagnostic.goto_next { severity = vim.diagnostic.severity.WARNING } end)
+    vim.keymap.set("n", "[w", function() vim.diagnostic.goto_prev { severity = vim.diagnostic.severity.WARNING } end)
     vim.keymap.set("n", "<leader>ld", function() vim.diagnostic.open_float(0, { scope = "line" }) end)
+    vim.keymap.set("n", "<leader>awf", vim.lsp.buf.add_workspace_folder)
   end
 }
 
@@ -682,14 +704,15 @@ local KEY_BINDINGS = {
 
 local LSP_SAGA = {
   setup = function()
-    require("lspsaga").init_lsp_saga({
-      server_filetype_map = { metals = { "sbt", "scala" } },
-      code_action_prompt = { virtual_text = true },
-    })
-    vim.keymap.set("n", "<leader>sh", require "lspsaga.signaturehelp".signature_help)
-    vim.keymap.set("n", "<leader>rn", require "lspsaga.rename".rename)
-    vim.keymap.set("n", "<leader>ca", require "lspsaga.codeaction".code_action)
-    vim.keymap.set("v", "<leader>ca", require "lspsaga.codeaction".range_code_action)
+    -- require("lspsaga").init_lsp_saga({
+    --   server_filetype_map = { metals = { "sbt", "scala" } },
+    --   code_action_prompt = { virtual_text = true },
+    -- })
+    -- vim.keymap.set("n", "<leader>sh", require "lspsaga.signaturehelp".signature_help)
+
+    vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename)
+    vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action)
+    vim.keymap.set("v", "<leader>ca", vim.lsp.buf.code_action)
   end
 }
 
