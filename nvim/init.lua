@@ -12,6 +12,7 @@ local PLUGINS = {
         setup = function() vim.g.mkdp_filetypes = { "markdown" } end,
         ft = { "markdown" },
       })
+      use({ "sourcegraph/sg.nvim", run = "cargo build --workspace", requires = { "nvim-lua/plenary.nvim" } })
       use({
         'nvimdev/lspsaga.nvim',
         after = 'nvim-lspconfig',
@@ -19,6 +20,7 @@ local PLUGINS = {
           require('lspsaga').setup({})
         end,
       })
+      use({ "ThePrimeagen/harpoon" })
       use({ "shime/vim-livedown" })
       use({ "earthly/earthly.vim" })
       use({
@@ -770,6 +772,20 @@ local INDENT_BLANKLINE = {
   end
 }
 
+local HARPOON = {
+  setup = function()
+    -- lua require("harpoon.mark").add_file()
+    vim.keymap.set("n", "<leader>hm", function() require("harpoon.mark").add_file() end)
+    vim.keymap.set("n", "<leader>hq", function() require("harpoon.ui").toggle_quick_menu() end)
+  end
+}
+
+local SOURCEGRAPH = {
+  setup =  function ()
+    require("sg").setup()
+  end
+}
+
 PLUGINS.setup()
 OPTIONS.setup()
 VISUAL.setup()
@@ -784,3 +800,4 @@ LSP_SAGA.setup()
 CMP.setup()
 LUALINE.setup()
 KEY_BINDINGS.setup()
+HARPOON.setup()
