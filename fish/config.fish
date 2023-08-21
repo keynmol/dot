@@ -25,7 +25,7 @@ fish_add_path /opt/homebrew/bin
 fish_add_path $HOME/.tools/node-v16.13.1-darwin-arm64/bin/
 fish_add_path $HOME/.fly/bin
 fish_add_path $HOME/.tools/current_node/bin
-fish_add_path "$HOME/Library/Application Support/Coursier/bin"
+fish_add_path $HOME/Library/Application\ Support/Coursier/bin
 fish_add_path $HOME/.sg
 fish_add_path $HOME/go/bin
 
@@ -33,6 +33,9 @@ set -gx EDITOR nvim
 set -gx VISUAL $EDITOR
 
 set FLY_INSTALL "$HOME/.fly"
+
+export SRC_ENDPOINT='https://sourcegraph.com'
+export SRC_ACCESS_TOKEN=(cat ~/.sourcegraph-tk)
 
 function fish_prompt
     set_color FF0
@@ -66,3 +69,7 @@ end
 
 # The next line updates PATH for the Google Cloud SDK.
 if [ -f "$HOME/.tools/google-cloud-sdk/path.fish.inc" ]; . "$HOME/.tools/google-cloud-sdk/path.fish.inc"; end
+
+### MANAGED BY RANCHER DESKTOP START (DO NOT EDIT)
+set --export --prepend PATH "/Users/antonsviridov/.rd/bin"
+### MANAGED BY RANCHER DESKTOP END (DO NOT EDIT)

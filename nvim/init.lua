@@ -85,24 +85,24 @@ local LUALINE = {
 
     require('lualine').setup(
       {
-      sections = {
-        lualine_a = { 'mode' },
-        lualine_b = { 'branch', 'diff' },
-        lualine_c = { 'filename', {
-          'diagnostics',
-          sources = { 'nvim_diagnostic' },
-          symbols = { error = ' ', warn = ' ', info = ' ' },
-          diagnostics_color = {
-            color_error = { fg = '#ec5f67' },
-            color_warn = { fg = '#ECBE7B' },
-            color_info = { fg = '#008080' },
-          }
-        }, metals_status },
-        lualine_x = { 'encoding', 'filetype' },
-        lualine_y = { 'progress' },
-        lualine_z = { 'location' }
+        sections = {
+          lualine_a = { 'mode' },
+          lualine_b = { 'branch', 'diff' },
+          lualine_c = { 'filename', {
+            'diagnostics',
+            sources = { 'nvim_diagnostic' },
+            symbols = { error = ' ', warn = ' ', info = ' ' },
+            diagnostics_color = {
+              color_error = { fg = '#ec5f67' },
+              color_warn = { fg = '#ECBE7B' },
+              color_info = { fg = '#008080' },
+            }
+          }, metals_status },
+          lualine_x = { 'encoding', 'filetype' },
+          lualine_y = { 'progress' },
+          lualine_z = { 'location' }
+        }
       }
-    }
     )
   end
 }
@@ -162,8 +162,8 @@ local CMP = {
       sorting = {
         priority_weight = 2,
         comparators = {
-          compare.offset, -- we still want offset to be higher to order after 3rd letter
-          compare.score, -- same as above
+          compare.offset,    -- we still want offset to be higher to order after 3rd letter
+          compare.score,     -- same as above
           compare.sort_text, -- add higher precedence for sort_text, it must be above `kind`
           compare.recently_used,
           compare.kind,
@@ -392,20 +392,21 @@ local TREE_SITTER = {
         files = { "src/parser.c", "src/scanner.c" },
         requires_generate_from_grammar = false, -- requires_generate_from_grammar = true, -- if folder contains pre-generated src/parser.c
       },
-      filetype = "scala", -- if filetype does not agrees with parser name
-      used_by = { "scala", "sbt" } -- additional filetypes that use this parser
+      filetype = "scala",                       -- if filetype does not agrees with parser name
+      used_by = { "scala", "sbt" }              -- additional filetypes that use this parser
     }
 
     require 'nvim-treesitter.configs'.setup {
       sync_install = false, -- install languages synchronously (only applied to `ensure_installed`)
       highlight = {
-        enable = true, -- false will disable the whole extension
+        enable = true,      -- false will disable the whole extension
         additional_vim_regex_highlighting = false,
       },
     }
   end
 }
 
+local lsp = vim.api.nvim_create_augroup("LSP", { clear = true })
 
 
 local LSP_SERVERS = {
@@ -418,6 +419,7 @@ local LSP_SERVERS = {
     require 'lspconfig'.crystalline.setup {}
     require 'lspconfig'.gopls.setup {}
     require 'lspconfig'.tsserver.setup {}
+    require 'lspconfig'.rust_analyzer.setup {}
     local capabilities = vim.lsp.protocol.make_client_capabilities()
     capabilities.textDocument.completion.completionItem.snippetSupport = true
 
@@ -435,7 +437,6 @@ local LSP_SERVERS = {
       require 'lspconfig'.marksman.setup {}
     end
 
-    local lsp = vim.api.nvim_create_augroup("LSP", { clear = true })
 
     -- if local_overrides.grammar_js_lsp then
     vim.api.nvim_create_autocmd("FileType", {
@@ -595,11 +596,11 @@ local TELESCOPE = {
     vim.keymap.set('n', 'gds', B.lsp_document_symbols)
     vim.keymap.set('n', 'gws',
       function()
-      B.lsp_dynamic_workspace_symbols({
-        path_display = { shorten = { len = 1, exclude = { 1, -1 } } },
-        layout_strategy = 'vertical'
-      })
-    end)
+        B.lsp_dynamic_workspace_symbols({
+          path_display = { shorten = { len = 1, exclude = { 1, -1 } } },
+          layout_strategy = 'vertical'
+        })
+      end)
     vim.keymap.set('n', '<leader>mc', EXT.metals.commands)
 
     local previewers = require("telescope.previewers")
@@ -618,19 +619,45 @@ local TELESCOPE = {
       end)
     end
 
+    local Path = require("plenary.path")
+    local Display = require("telescope.pickers.entry_display")
+
+    local displayer = Display.create {
+      separator = " in ",
+      items = {
+        { width = 25 },
+        { remaining = true },
+      },
+    }
+
     require("telescope").setup({
       defaults = {
         buffer_previewer_maker = new_maker,
         file_ignore_patterns = { "target", "node_modules", "parser.c" },
         prompt_prefix = "❯",
+        path_display = function(opts, path)
+          local p = vim.split(path, '/')
+          if #p > 1 then
+            local rest = ''
+            for i = 1, #p - 1 do
+              rest = rest .. "/" .. p[i]
+            end
+            return displayer {
+              { p[#p], "TelescopeResultsNumber" },
+              { rest,  "TelescopeResultsComment" },
+            }
+          else
+            return p[1]
+          end
+        end
         -- file_previewer = require("telescope.previewers").vim_buffer_cat.new,
         -- grep_previewer = require("telescope.previewers").vim_buffer_vimgrep.new,
       },
-      extensions = {
-        langoustine = {
-          command_prefix = { "langoustine-tracer-dev", "trace" }
-        }
-      }
+      -- extensions = {
+      --   langoustine = {
+      --     command_prefix = { "langoustine-tracer-dev", "trace" }
+      --   }
+      -- }
     })
 
     require("telescope").load_extension("fzy_native")
@@ -677,7 +704,8 @@ local LSP_KEY_BINDINGS = {
     vim.keymap.set("n", "gr", vim.lsp.buf.references)
     vim.keymap.set("n", "<leader>rr", vim.lsp.codelens.run)
     vim.keymap.set("n", "<leader>aa", vim.diagnostic.setqflist)
-    vim.keymap.set("n", "<leader>ae", function() vim.diagnostic.setqflist { severity = vim.diagnostic.severity.ERROR } end)
+    vim.keymap.set("n", "<leader>ae",
+      function() vim.diagnostic.setqflist { severity = vim.diagnostic.severity.ERROR } end)
     vim.keymap.set("n", "<leader>d", vim.diagnostic.setloclist)
     vim.keymap.set("n", "]c", vim.diagnostic.goto_next)
     vim.keymap.set("n", "[c", vim.diagnostic.goto_prev)
@@ -699,15 +727,11 @@ local KEY_BINDINGS = {
 
 local LSP_SAGA = {
   setup = function()
-    -- require("lspsaga").init_lsp_saga({
-    --   server_filetype_map = { metals = { "sbt", "scala" } },
-    --   code_action_prompt = { virtual_text = true },
-    -- })
-    -- vim.keymap.set("n", "<leader>sh", require "lspsaga.signaturehelp".signature_help)
-
     vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename)
     vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action)
     vim.keymap.set("v", "<leader>ca", vim.lsp.buf.code_action)
+    vim.keymap.set("n", "<leader>lt", '<cmd>Lspsaga term_toggle<cr>')
+    vim.keymap.set("n", "<leader>lo", '<cmd>Lspsaga outline<cr>')
   end
 }
 
@@ -781,7 +805,7 @@ local HARPOON = {
 }
 
 local SOURCEGRAPH = {
-  setup =  function ()
+  setup = function()
     require("sg").setup()
   end
 }
@@ -796,8 +820,8 @@ TELESCOPE.setup()
 METALS.setup()
 NVIM_DAP.setup()
 LSP_KEY_BINDINGS.setup()
-LSP_SAGA.setup()
 CMP.setup()
 LUALINE.setup()
 KEY_BINDINGS.setup()
 HARPOON.setup()
+LSP_SAGA.setup()

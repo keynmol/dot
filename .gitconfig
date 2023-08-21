@@ -13,4 +13,6 @@
   bdone = "!f() { DEFAULT=$(git default); git checkout ${1-$DEFAULT} && git up && git bclean ${1-$DEFAULT}; }; f"
 [user]
 	name = Anton Sviridov
-	email = keynmol@gmail.com
+  email = keynmol@gmail.com
+[push]
+  default = current
