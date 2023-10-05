@@ -35,7 +35,7 @@ set -gx VISUAL $EDITOR
 set FLY_INSTALL "$HOME/.fly"
 
 export SRC_ENDPOINT='https://sourcegraph.com'
-export SRC_ACCESS_TOKEN=(cat ~/.sourcegraph-tk)
+export SRC_ACCESS_TOKEN=(cat ~/.sourcegraph-tk 2> /dev/null || echo "not set")
 
 function fish_prompt
     set_color FF0
