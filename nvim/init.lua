@@ -6,13 +6,16 @@ local PLUGINS = {
       use {
         'nvim-lualine/lualine.nvim',
         requires = { 'kyazdani42/nvim-web-devicons', opt = true } }
+
       use({
         "iamcco/markdown-preview.nvim",
         run = "cd app && npm install",
         setup = function() vim.g.mkdp_filetypes = { "markdown" } end,
         ft = { "markdown" },
       })
+
       use({ "sourcegraph/sg.nvim", run = "cargo build --workspace", requires = { "nvim-lua/plenary.nvim" } })
+
       use({
         'nvimdev/lspsaga.nvim',
         after = 'nvim-lspconfig',
@@ -20,9 +23,9 @@ local PLUGINS = {
           require('lspsaga').setup({})
         end,
       })
+
       use({ "ThePrimeagen/harpoon" })
-      use({ "shime/vim-livedown" })
-      use({ "earthly/earthly.vim" })
+
       use({
         "hrsh7th/nvim-cmp",
         requires = {
@@ -36,10 +39,13 @@ local PLUGINS = {
       })
 
       use({ "kevinhwang91/nvim-bqf" })
+
       use({ 'kyazdani42/nvim-web-devicons' })
+
       use({ 'kyazdani42/nvim-tree.lua' })
 
       use({ "mfussenegger/nvim-dap" })
+
       use({ "neovim/nvim-lspconfig" })
       use({
         "nvim-telescope/telescope.nvim",
@@ -52,7 +58,6 @@ local PLUGINS = {
       use({ "scalameta/nvim-metals" })
       use({ "sheerun/vim-polyglot" })
       use({ "tpope/vim-fugitive" })
-      use({ "ziglang/zig.vim" })
       use({ "tpope/vim-commentary" })
       use({ "wbthomason/packer.nvim", opt = true })
       use({ "rebelot/kanagawa.nvim" })
@@ -147,14 +152,14 @@ local CMP = {
       },
       mapping = {
         ["<CR>"] = cmp.mapping.confirm({ select = true }),
-        ["<Tab>"] = function(fallback)
+        ["<Down>"] = function(fallback)
           if cmp.visible() then
             cmp.select_next_item()
           else
             fallback()
           end
         end,
-        ["<S-Tab>"] = function(fallback)
+        ["<Up>"] = function(fallback)
           if cmp.visible() then
             cmp.select_prev_item()
           else

@@ -63,10 +63,6 @@ function start -a repo_url
 end
 
 
-if [ -f /opt/homebrew/opt/asdf/libexec/asdf.fish ];
-    source /opt/homebrew/opt/asdf/libexec/asdf.fish
-end
-
 # The next line updates PATH for the Google Cloud SDK.
 if [ -f "$HOME/.tools/google-cloud-sdk/path.fish.inc" ]; . "$HOME/.tools/google-cloud-sdk/path.fish.inc"; end
 
