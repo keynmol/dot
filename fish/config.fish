@@ -65,7 +65,3 @@ end
 
 # The next line updates PATH for the Google Cloud SDK.
 if [ -f "$HOME/.tools/google-cloud-sdk/path.fish.inc" ]; . "$HOME/.tools/google-cloud-sdk/path.fish.inc"; end
-
-### MANAGED BY RANCHER DESKTOP START (DO NOT EDIT)
-set --export --prepend PATH "/Users/antonsviridov/.rd/bin"
-### MANAGED BY RANCHER DESKTOP END (DO NOT EDIT)

@@ -1,34 +1,67 @@
-vim.cmd([[packadd packer.nvim]])
+local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
+if not vim.loop.fs_stat(lazypath) then
+  vim.fn.system({
+    "git",
+    "clone",
+    "--filter=blob:none",
+    "https://github.com/folke/lazy.nvim.git",
+    "--branch=stable", -- latest stable release
+    lazypath,
+  })
+end
+vim.opt.rtp:prepend(lazypath)
 
 local PLUGINS = {
   setup = function()
-    return require("packer").startup(function(use)
-      use {
+    return require("lazy").setup({
+      "ThePrimeagen/harpoon",
+      "kevinhwang91/nvim-bqf",
+      'kyazdani42/nvim-web-devicons',
+      'kyazdani42/nvim-tree.lua',
+      "mfussenegger/nvim-dap",
+      "neovim/nvim-lspconfig",
+      "scalameta/nvim-metals",
+      "sheerun/vim-polyglot",
+      "tpope/vim-fugitive",
+      "tpope/vim-commentary",
+      "rebelot/kanagawa.nvim",
+      {
         'nvim-lualine/lualine.nvim',
-        requires = { 'kyazdani42/nvim-web-devicons', opt = true } }
-
-      use({
+        dependencies = { 'kyazdani42/nvim-web-devicons' }
+      },
+      {
+        "nvim-telescope/telescope.nvim",
+        dependencies = {
+          { "nvim-lua/popup.nvim" },
+          { "nvim-lua/plenary.nvim" },
+          { "nvim-telescope/telescope-fzy-native.nvim" },
+        },
+      },
+      {
         "iamcco/markdown-preview.nvim",
-        run = "cd app && npm install",
-        setup = function() vim.g.mkdp_filetypes = { "markdown" } end,
+        build = "cd app && npm install",
+        config = function() vim.g.mkdp_filetypes = { "markdown" } end,
         ft = { "markdown" },
-      })
-
-      use({ "sourcegraph/sg.nvim", run = "cargo build --workspace", requires = { "nvim-lua/plenary.nvim" } })
-
-      use({
+      },
+      {
         'nvimdev/lspsaga.nvim',
-        after = 'nvim-lspconfig',
         config = function()
           require('lspsaga').setup({})
         end,
-      })
-
-      use({ "ThePrimeagen/harpoon" })
-
-      use({
+      },
+      'lukas-reineke/indent-blankline.nvim',
+      'nvim-treesitter/nvim-treesitter',
+      'nvim-treesitter/nvim-treesitter-context',
+      'nvim-treesitter/playground',
+      {
+        "https://git.sr.ht/~whynothugo/lsp_lines.nvim",
+        config = function()
+          require("lsp_lines").setup()
+        end,
+      },
+      {
         "hrsh7th/nvim-cmp",
-        requires = {
+        dependencies = {
           { "hrsh7th/cmp-buffer" },
           { "hrsh7th/cmp-nvim-lsp" },
           { "hrsh7th/cmp-path" },
@@ -36,51 +69,32 @@ local PLUGINS = {
           { "hrsh7th/vim-vsnip" },
           { "hrsh7th/vim-vsnip-integ" },
         },
-      })
+      },
+      { 'sourcegraph/sg.nvim', build = 'nvim -l build/init.lua' }
 
-      use({ "kevinhwang91/nvim-bqf" })
 
-      use({ 'kyazdani42/nvim-web-devicons' })
-
-      use({ 'kyazdani42/nvim-tree.lua' })
-
-      use({ "mfussenegger/nvim-dap" })
-
-      use({ "neovim/nvim-lspconfig" })
-      use({
-        "nvim-telescope/telescope.nvim",
-        requires = {
-          { "nvim-lua/popup.nvim" },
-          { "nvim-lua/plenary.nvim" },
-          { "nvim-telescope/telescope-fzy-native.nvim" },
-        },
-      })
-      use({ "scalameta/nvim-metals" })
-      use({ "sheerun/vim-polyglot" })
-      use({ "tpope/vim-fugitive" })
-      use({ "tpope/vim-commentary" })
-      use({ "wbthomason/packer.nvim", opt = true })
-      use({ "rebelot/kanagawa.nvim" })
-      -- use({ "cormacrelf/vim-colors-github" })
-      use({ 'lukas-reineke/indent-blankline.nvim' })
-      use {
-        'nvim-treesitter/nvim-treesitter',
-      }
-      use 'nvim-treesitter/nvim-treesitter-context'
-      use {
-        'nvim-treesitter/playground'
-      }
-      use({
-        "https://git.sr.ht/~whynothugo/lsp_lines.nvim",
-        config = function()
-          require("lsp_lines").setup()
-        end,
-      })
-
-      use 'neandertech/nvim-langoustine'
-    end)
+    })
   end
 }
+
+-- local PLUGINS = {
+--   setup = function()
+--     return require("lazy").setup({
+
+--       use { 'sourcegraph/sg.nvim', run = 'nvim -l build/init.lua' }
+
+--       use({
+--         'nvimdev/lspsaga.nvim',
+--         after = 'nvim-lspconfig',
+--         config = function()
+--           require('lspsaga').setup({})
+--         end,
+--       })
+
+--       use 'neandertech/nvim-langoustine'
+--     end)
+--   end
+-- }
 
 local LUALINE = {
   setup = function()
@@ -90,24 +104,24 @@ local LUALINE = {
 
     require('lualine').setup(
       {
-      sections = {
-        lualine_a = { 'mode' },
-        lualine_b = { 'branch', 'diff' },
-        lualine_c = { 'filename', {
-          'diagnostics',
-          sources = { 'nvim_diagnostic' },
-          symbols = { error = ' ', warn = ' ', info = ' ' },
-          diagnostics_color = {
-            color_error = { fg = '#ec5f67' },
-            color_warn = { fg = '#ECBE7B' },
-            color_info = { fg = '#008080' },
-          }
-        }, metals_status },
-        lualine_x = { 'encoding', 'filetype' },
-        lualine_y = { 'progress' },
-        lualine_z = { 'location' }
+        sections = {
+          lualine_a = { 'mode' },
+          lualine_b = { 'branch', 'diff' },
+          lualine_c = { 'filename', {
+            'diagnostics',
+            sources = { 'nvim_diagnostic' },
+            symbols = { error = ' ', warn = ' ', info = ' ' },
+            diagnostics_color = {
+              color_error = { fg = '#ec5f67' },
+              color_warn = { fg = '#ECBE7B' },
+              color_info = { fg = '#008080' },
+            }
+          }, metals_status },
+          lualine_x = { 'encoding', 'filetype' },
+          lualine_y = { 'progress' },
+          lualine_z = { 'location' }
+        }
       }
-    }
     )
   end
 }
@@ -171,8 +185,8 @@ local CMP = {
       sorting = {
         priority_weight = 2,
         comparators = {
-          compare.offset, -- we still want offset to be higher to order after 3rd letter
-          compare.score, -- same as above
+          compare.offset,    -- we still want offset to be higher to order after 3rd letter
+          compare.score,     -- same as above
           compare.sort_text, -- add higher precedence for sort_text, it must be above `kind`
           compare.recently_used,
           compare.kind,
@@ -393,23 +407,12 @@ end
 
 local TREE_SITTER = {
   setup = function()
-    local parser_config = require "nvim-treesitter.parsers".get_parser_configs()
-
-    parser_config.scala = {
-      install_info = {
-        generate_requires_npm = true, -- if stand-alone parser without npm dependencies
-        url = "~/projects/tree-sitter-scala/",
-        files = { "src/parser.c", "src/scanner.c" },
-        requires_generate_from_grammar = false, -- requires_generate_from_grammar = true, -- if folder contains pre-generated src/parser.c
-      },
-      filetype = "scala", -- if filetype does not agrees with parser name
-      used_by = { "scala", "sbt" } -- additional filetypes that use this parser
-    }
-
     require 'nvim-treesitter.configs'.setup {
+      -- A list of parser names, or "all" (the five listed parsers should always be installed)
+      ensure_installed = { "c", "lua", "vim", "vimdoc", "query", "scala", "rust", "go", "cpp" },
       sync_install = false, -- install languages synchronously (only applied to `ensure_installed`)
       highlight = {
-        enable = true, -- false will disable the whole extension
+        enable = true,      -- false will disable the whole extension
         additional_vim_regex_highlighting = false,
       },
     }
@@ -606,11 +609,11 @@ local TELESCOPE = {
     vim.keymap.set('n', 'gds', B.lsp_document_symbols)
     vim.keymap.set('n', 'gws',
       function()
-      B.lsp_dynamic_workspace_symbols({
-        path_display = { shorten = { len = 1, exclude = { 1, -1 } } },
-        layout_strategy = 'vertical'
-      })
-    end)
+        B.lsp_dynamic_workspace_symbols({
+          path_display = { shorten = { len = 1, exclude = { 1, -1 } } },
+          layout_strategy = 'vertical'
+        })
+      end)
     vim.keymap.set('n', '<leader>mc', EXT.metals.commands)
 
     local previewers = require("telescope.previewers")
@@ -653,7 +656,7 @@ local TELESCOPE = {
             end
             return displayer {
               { p[#p], "TelescopeResultsNumber" },
-              { rest, "TelescopeResultsComment" },
+              { rest,  "TelescopeResultsComment" },
             }
           else
             return p[1]
