@@ -22,7 +22,7 @@ alias j="cd (fd -d 2 -t d '' ~/projects | fzf)"
 fish_add_path $HOME/.tools
 fish_add_path $HOME/.cargo/bin
 fish_add_path /opt/homebrew/bin
-fish_add_path $HOME/.tools/node-v16.13.1-darwin-arm64/bin/
+# fish_add_path $HOME/.tools/node-v16.13.1-darwin-arm64/bin/
 fish_add_path $HOME/.fly/bin
 # fish_add_path $HOME/.tools/current_node/bin
 fish_add_path $HOME/Library/Application\ Support/Coursier/bin

@@ -162,7 +162,7 @@ local CMP = {
       },
       window = {
         completion = cmp.config.window.bordered(),
-        documentation = cmp.config.window.bordered(),
+        -- documentation = cmp.config.window.bordered(),
       },
       mapping = {
         ["<CR>"] = cmp.mapping.confirm({ select = true }),
@@ -433,6 +433,8 @@ local LSP_SERVERS = {
     require 'lspconfig'.gopls.setup {}
     require 'lspconfig'.tsserver.setup {}
     require 'lspconfig'.rust_analyzer.setup {}
+    require'lspconfig'.jsonls.setup{}
+    -- require 'lspconfig'.sourcekit.setup {}
     local capabilities = vim.lsp.protocol.make_client_capabilities()
     capabilities.textDocument.completion.completionItem.snippetSupport = true
 
