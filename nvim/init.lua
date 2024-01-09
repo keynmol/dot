@@ -104,24 +104,24 @@ local LUALINE = {
 
     require('lualine').setup(
       {
-        sections = {
-          lualine_a = { 'mode' },
-          lualine_b = { 'branch', 'diff' },
-          lualine_c = { 'filename', {
-            'diagnostics',
-            sources = { 'nvim_diagnostic' },
-            symbols = { error = ' ', warn = ' ', info = ' ' },
-            diagnostics_color = {
-              color_error = { fg = '#ec5f67' },
-              color_warn = { fg = '#ECBE7B' },
-              color_info = { fg = '#008080' },
-            }
-          }, metals_status },
-          lualine_x = { 'encoding', 'filetype' },
-          lualine_y = { 'progress' },
-          lualine_z = { 'location' }
-        }
+      sections = {
+        lualine_a = { 'mode' },
+        lualine_b = { 'branch', 'diff' },
+        lualine_c = { 'filename', {
+          'diagnostics',
+          sources = { 'nvim_diagnostic' },
+          symbols = { error = ' ', warn = ' ', info = ' ' },
+          diagnostics_color = {
+            color_error = { fg = '#ec5f67' },
+            color_warn = { fg = '#ECBE7B' },
+            color_info = { fg = '#008080' },
+          }
+        }, metals_status },
+        lualine_x = { 'encoding', 'filetype' },
+        lualine_y = { 'progress' },
+        lualine_z = { 'location' }
       }
+    }
     )
   end
 }
@@ -185,8 +185,8 @@ local CMP = {
       sorting = {
         priority_weight = 2,
         comparators = {
-          compare.offset,    -- we still want offset to be higher to order after 3rd letter
-          compare.score,     -- same as above
+          compare.offset, -- we still want offset to be higher to order after 3rd letter
+          compare.score, -- same as above
           compare.sort_text, -- add higher precedence for sort_text, it must be above `kind`
           compare.recently_used,
           compare.kind,
@@ -412,7 +412,7 @@ local TREE_SITTER = {
       ensure_installed = { "c", "lua", "vim", "vimdoc", "query", "scala", "rust", "go", "cpp" },
       sync_install = false, -- install languages synchronously (only applied to `ensure_installed`)
       highlight = {
-        enable = true,      -- false will disable the whole extension
+        enable = true, -- false will disable the whole extension
         additional_vim_regex_highlighting = false,
       },
     }
@@ -433,7 +433,7 @@ local LSP_SERVERS = {
     require 'lspconfig'.gopls.setup {}
     require 'lspconfig'.tsserver.setup {}
     require 'lspconfig'.rust_analyzer.setup {}
-    require'lspconfig'.jsonls.setup{}
+    require 'lspconfig'.jsonls.setup {}
     -- require 'lspconfig'.sourcekit.setup {}
     local capabilities = vim.lsp.protocol.make_client_capabilities()
     capabilities.textDocument.completion.completionItem.snippetSupport = true
@@ -611,11 +611,11 @@ local TELESCOPE = {
     vim.keymap.set('n', 'gds', B.lsp_document_symbols)
     vim.keymap.set('n', 'gws',
       function()
-        B.lsp_dynamic_workspace_symbols({
-          path_display = { shorten = { len = 1, exclude = { 1, -1 } } },
-          layout_strategy = 'vertical'
-        })
-      end)
+      B.lsp_dynamic_workspace_symbols({
+        path_display = { shorten = { len = 1, exclude = { 1, -1 } } },
+        layout_strategy = 'vertical'
+      })
+    end)
     vim.keymap.set('n', '<leader>mc', EXT.metals.commands)
 
     local previewers = require("telescope.previewers")
@@ -658,7 +658,7 @@ local TELESCOPE = {
             end
             return displayer {
               { p[#p], "TelescopeResultsNumber" },
-              { rest,  "TelescopeResultsComment" },
+              { rest, "TelescopeResultsComment" },
             }
           else
             return p[1]
@@ -807,6 +807,7 @@ local OPTIONS = {
 
 local INDENT_BLANKLINE = {
   setup = function()
+    require("ibl").setup()
   end
 }
 
@@ -839,3 +840,4 @@ LUALINE.setup()
 KEY_BINDINGS.setup()
 HARPOON.setup()
 LSP_SAGA.setup()
+INDENT_BLANKLINE.setup()
