@@ -14,7 +14,11 @@ vim.opt.rtp:prepend(lazypath)
 local PLUGINS = {
   setup = function()
     return require("lazy").setup({
-      "ThePrimeagen/harpoon",
+      {
+        "ThePrimeagen/harpoon",
+        branch = "harpoon2",
+        dependencies = { "nvim-lua/plenary.nvim" }
+      },
       "kevinhwang91/nvim-bqf",
       'kyazdani42/nvim-web-devicons',
       'kyazdani42/nvim-tree.lua',
@@ -50,7 +54,7 @@ local PLUGINS = {
         end,
       },
       'lukas-reineke/indent-blankline.nvim',
-      'nvim-treesitter/nvim-treesitter',
+      { 'nvim-treesitter/nvim-treesitter', config = ":TSUpdate" },
       'nvim-treesitter/nvim-treesitter-context',
       'nvim-treesitter/playground',
       {
@@ -70,7 +74,7 @@ local PLUGINS = {
           { "hrsh7th/vim-vsnip-integ" },
         },
       },
-      { 'sourcegraph/sg.nvim', build = 'nvim -l build/init.lua' }
+      { 'sourcegraph/sg.nvim' }
 
 
     })
@@ -409,11 +413,21 @@ local TREE_SITTER = {
   setup = function()
     require 'nvim-treesitter.configs'.setup {
       -- A list of parser names, or "all" (the five listed parsers should always be installed)
-      ensure_installed = { "c", "lua", "vim", "vimdoc", "query", "scala", "rust", "go", "cpp" },
+      -- ensure_installed = { "c", "lua", "vim", "vimdoc", "query", "scala", "rust", "go", "cpp" },
       sync_install = false, -- install languages synchronously (only applied to `ensure_installed`)
       highlight = {
         enable = true, -- false will disable the whole extension
         additional_vim_regex_highlighting = false,
+      },
+      indent = {
+        enable = true
+
+      },
+      keymaps = {
+        init_selection = "gnn", -- set to `false` to disable one of the mappings
+        node_incremental = "grn",
+        scope_incremental = "grc",
+        node_decremental = "grm",
       },
     }
   end
@@ -813,11 +827,34 @@ local INDENT_BLANKLINE = {
 
 local HARPOON = {
   setup = function()
+    local harpoon = require("harpoon")
+
+    -- REQUIRED
+    harpoon:setup()
+    -- REQUIRED
     -- lua require("harpoon.mark").add_file()
-    vim.keymap.set("n", "<leader>hm", function() require("harpoon.mark").add_file() end)
-    vim.keymap.set("n", "<leader>hq", function() require("harpoon.ui").toggle_quick_menu() end)
-  end
-}
+    vim.keymap.set("n", "<leader>hm", function() harpoon:list():append() end)
+    local conf = require("telescope.config").values
+    local function toggle_telescope(harpoon_files)
+        local file_paths = {}
+        for _, item in ipairs(harpoon_files.items) do
+            table.insert(file_paths, item.value)
+        end
+
+        require("telescope.pickers").new({}, {
+            prompt_title = "Harpoon",
+            finder = require("telescope.finders").new_table({
+                results = file_paths,
+            }),
+            previewer = conf.file_previewer({}),
+            sorter = conf.generic_sorter({}),
+        }):find()
+    end
+
+    vim.keymap.set("n", "<leader>ht", function() toggle_telescope(harpoon:list()) end,
+        { desc = "Open harpoon window" })
+      end
+    }
 
 local SOURCEGRAPH = {
   setup = function()
@@ -841,3 +878,4 @@ KEY_BINDINGS.setup()
 HARPOON.setup()
 LSP_SAGA.setup()
 INDENT_BLANKLINE.setup()
+SOURCEGRAPH.setup()

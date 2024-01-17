@@ -5,6 +5,8 @@
   cob = checkout -b
   cm = !git add -A && git commit -m
   scm = !git add -u . && git commit
+  qfx = !git add -u . && git commit -m "Fix" && git push
+  qcm = !git add -u . && git commit && git push
   save = !git add -A && git commit -m 'SAVEPOINT'
   wip = !git add -u && git commit -m "WIP"
   qwip = !git add -u && git commit -m "WIP" && git push
