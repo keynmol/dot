@@ -20,8 +20,16 @@ local PLUGINS = {
         dependencies = { "nvim-lua/plenary.nvim" }
       },
       "kevinhwang91/nvim-bqf",
-      'kyazdani42/nvim-web-devicons',
-      'kyazdani42/nvim-tree.lua',
+      {
+        "nvim-neo-tree/neo-tree.nvim",
+        branch = "v3.x",
+        dependencies = {
+          "nvim-lua/plenary.nvim",
+          "nvim-tree/nvim-web-devicons", -- not strictly required, but recommended
+          "MunifTanjim/nui.nvim",
+          -- "3rd/image.nvim", -- Optional image support in preview window: See `# Preview Mode` for more information
+        }
+      },
       "mfussenegger/nvim-dap",
       "neovim/nvim-lspconfig",
       "scalameta/nvim-metals",
@@ -54,8 +62,23 @@ local PLUGINS = {
         end,
       },
       'lukas-reineke/indent-blankline.nvim',
-      { 'nvim-treesitter/nvim-treesitter', config = ":TSUpdate" },
-      'nvim-treesitter/nvim-treesitter-context',
+      'nvim-treesitter/nvim-treesitter',
+      { 'nvim-treesitter/nvim-treesitter-context', config = function()
+        require 'treesitter-context'.setup {
+          enable = true, -- Enable this plugin (Can be enabled/disabled later via commands)
+          max_lines = 5, -- How many lines the window should span. Values <= 0 mean no limit.
+          min_window_height = 50, -- Minimum editor window height to enable context. Values <= 0 mean no limit.
+          line_numbers = true,
+          multiline_threshold = 1, -- Maximum number of lines to show for a single context
+          trim_scope = 'outer', -- Which context lines to discard if `max_lines` is exceeded. Choices: 'inner', 'outer'
+          mode = 'cursor', -- Line used to calculate context. Choices: 'cursor', 'topline'
+          -- Separator between context and content. Should be a single character string, like '-'.
+          -- When separator is set, the context will only show up when there are at least 2 lines above cursorline.
+          separator = nil,
+          zindex = 20, -- The Z-index of the context window
+          on_attach = nil, -- (fun(buf: integer): boolean) return false to disable attaching
+        }
+      end },
       'nvim-treesitter/playground',
       {
         "https://git.sr.ht/~whynothugo/lsp_lines.nvim",
@@ -836,38 +859,52 @@ local HARPOON = {
     vim.keymap.set("n", "<leader>hm", function() harpoon:list():append() end)
     local conf = require("telescope.config").values
     local function toggle_telescope(harpoon_files)
-        local file_paths = {}
-        for _, item in ipairs(harpoon_files.items) do
-            table.insert(file_paths, item.value)
-        end
+      local file_paths = {}
+      for _, item in ipairs(harpoon_files.items) do
+        table.insert(file_paths, item.value)
+      end
 
-        require("telescope.pickers").new({}, {
-            prompt_title = "Harpoon",
-            finder = require("telescope.finders").new_table({
-                results = file_paths,
-            }),
-            previewer = conf.file_previewer({}),
-            sorter = conf.generic_sorter({}),
-        }):find()
+      require("telescope.pickers").new({}, {
+        prompt_title = "Harpoon",
+        finder = require("telescope.finders").new_table({
+          results = file_paths,
+        }),
+        previewer = conf.file_previewer({}),
+        sorter = conf.generic_sorter({}),
+      }):find()
     end
 
     vim.keymap.set("n", "<leader>ht", function() toggle_telescope(harpoon:list()) end,
-        { desc = "Open harpoon window" })
-      end
-    }
+      { desc = "Open harpoon window" })
+  end
+}
 
 local SOURCEGRAPH = {
   setup = function()
     require("sg").setup()
   end
 }
+local NEO_TREE = {
+  setup = function()
+    require("neo-tree").setup({
+      filesystem = {
+        hijack_netrw_behavior = "open_current",
+      }
+    })
+
+    vim.cmd([[nnoremap <C-a> :Neotree source=filesystem reveal=true position=left toggle=true<CR>]])
+    vim.cmd([[nnoremap <C-t> :Neotree toggle=true<CR>]])
+  end
+}
+
 
 PLUGINS.setup()
 OPTIONS.setup()
 VISUAL.setup()
 LSP_SERVERS.setup()
 TREE_SITTER.setup()
-NVIM_TREE.setup()
+-- NVIM_TREE.setup()
+NEO_TREE.setup()
 TELESCOPE.setup()
 METALS.setup()
 NVIM_DAP.setup()

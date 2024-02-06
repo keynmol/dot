@@ -22,3 +22,5 @@
   email = keynmol@gmail.com
 [push]
   default = current
+[init]
+	defaultBranch = main
