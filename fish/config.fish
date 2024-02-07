@@ -66,5 +66,4 @@ end
 # The next line updates PATH for the Google Cloud SDK.
 if [ -f "$HOME/.tools/google-cloud-sdk/path.fish.inc" ]; . "$HOME/.tools/google-cloud-sdk/path.fish.inc"; end
 
-set PATH $PATH /Users/velvetbaldmime/.sbt/1.0/bin
-source /Users/velvetbaldmime/.sbt/1.0/completions/sbtn.fish
+set PATH $PATH $HOME/.sbt/1.0/bin

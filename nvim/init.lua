@@ -50,6 +50,12 @@ local PLUGINS = {
         },
       },
       {
+        "j-hui/fidget.nvim",
+        opts = {
+          -- options
+        },
+      },
+      {
         "iamcco/markdown-preview.nvim",
         build = "cd app && npm install",
         config = function() vim.g.mkdp_filetypes = { "markdown" } end,
@@ -63,22 +69,25 @@ local PLUGINS = {
       },
       'lukas-reineke/indent-blankline.nvim',
       'nvim-treesitter/nvim-treesitter',
-      { 'nvim-treesitter/nvim-treesitter-context', config = function()
-        require 'treesitter-context'.setup {
-          enable = true, -- Enable this plugin (Can be enabled/disabled later via commands)
-          max_lines = 5, -- How many lines the window should span. Values <= 0 mean no limit.
-          min_window_height = 50, -- Minimum editor window height to enable context. Values <= 0 mean no limit.
-          line_numbers = true,
-          multiline_threshold = 1, -- Maximum number of lines to show for a single context
-          trim_scope = 'outer', -- Which context lines to discard if `max_lines` is exceeded. Choices: 'inner', 'outer'
-          mode = 'cursor', -- Line used to calculate context. Choices: 'cursor', 'topline'
-          -- Separator between context and content. Should be a single character string, like '-'.
-          -- When separator is set, the context will only show up when there are at least 2 lines above cursorline.
-          separator = nil,
-          zindex = 20, -- The Z-index of the context window
-          on_attach = nil, -- (fun(buf: integer): boolean) return false to disable attaching
-        }
-      end },
+      {
+        'nvim-treesitter/nvim-treesitter-context',
+        config = function()
+          require 'treesitter-context'.setup {
+            enable = true,         -- Enable this plugin (Can be enabled/disabled later via commands)
+            max_lines = 5,         -- How many lines the window should span. Values <= 0 mean no limit.
+            min_window_height = 50, -- Minimum editor window height to enable context. Values <= 0 mean no limit.
+            line_numbers = true,
+            multiline_threshold = 1, -- Maximum number of lines to show for a single context
+            trim_scope = 'outer',  -- Which context lines to discard if `max_lines` is exceeded. Choices: 'inner', 'outer'
+            mode = 'cursor',       -- Line used to calculate context. Choices: 'cursor', 'topline'
+            -- Separator between context and content. Should be a single character string, like '-'.
+            -- When separator is set, the context will only show up when there are at least 2 lines above cursorline.
+            separator = nil,
+            zindex = 20,   -- The Z-index of the context window
+            on_attach = nil, -- (fun(buf: integer): boolean) return false to disable attaching
+          }
+        end
+      },
       'nvim-treesitter/playground',
       {
         "https://git.sr.ht/~whynothugo/lsp_lines.nvim",
@@ -131,24 +140,24 @@ local LUALINE = {
 
     require('lualine').setup(
       {
-      sections = {
-        lualine_a = { 'mode' },
-        lualine_b = { 'branch', 'diff' },
-        lualine_c = { 'filename', {
-          'diagnostics',
-          sources = { 'nvim_diagnostic' },
-          symbols = { error = ' ', warn = ' ', info = ' ' },
-          diagnostics_color = {
-            color_error = { fg = '#ec5f67' },
-            color_warn = { fg = '#ECBE7B' },
-            color_info = { fg = '#008080' },
-          }
-        }, metals_status },
-        lualine_x = { 'encoding', 'filetype' },
-        lualine_y = { 'progress' },
-        lualine_z = { 'location' }
+        sections = {
+          lualine_a = { 'mode' },
+          lualine_b = { 'branch', 'diff' },
+          lualine_c = { 'filename', {
+            'diagnostics',
+            sources = { 'nvim_diagnostic' },
+            symbols = { error = ' ', warn = ' ', info = ' ' },
+            diagnostics_color = {
+              color_error = { fg = '#ec5f67' },
+              color_warn = { fg = '#ECBE7B' },
+              color_info = { fg = '#008080' },
+            }
+          }, metals_status },
+          lualine_x = { 'encoding', 'filetype' },
+          lualine_y = { 'progress' },
+          lualine_z = { 'location' }
+        }
       }
-    }
     )
   end
 }
@@ -212,8 +221,8 @@ local CMP = {
       sorting = {
         priority_weight = 2,
         comparators = {
-          compare.offset, -- we still want offset to be higher to order after 3rd letter
-          compare.score, -- same as above
+          compare.offset,    -- we still want offset to be higher to order after 3rd letter
+          compare.score,     -- same as above
           compare.sort_text, -- add higher precedence for sort_text, it must be above `kind`
           compare.recently_used,
           compare.kind,
@@ -260,7 +269,7 @@ local METALS = {
       enableSemanticHighlighting = false
     }
 
-    Metals_config.init_options.statusBarProvider = "on"
+    Metals_config.init_options.statusBarProvider = "off"
     Metals_config.handlers["textDocument/publishDiagnostics"] = shared_diagnostic_settings
     Metals_config.capabilities = capabilities
 
@@ -439,7 +448,7 @@ local TREE_SITTER = {
       -- ensure_installed = { "c", "lua", "vim", "vimdoc", "query", "scala", "rust", "go", "cpp" },
       sync_install = false, -- install languages synchronously (only applied to `ensure_installed`)
       highlight = {
-        enable = true, -- false will disable the whole extension
+        enable = true,      -- false will disable the whole extension
         additional_vim_regex_highlighting = false,
       },
       indent = {
@@ -648,11 +657,11 @@ local TELESCOPE = {
     vim.keymap.set('n', 'gds', B.lsp_document_symbols)
     vim.keymap.set('n', 'gws',
       function()
-      B.lsp_dynamic_workspace_symbols({
-        path_display = { shorten = { len = 1, exclude = { 1, -1 } } },
-        layout_strategy = 'vertical'
-      })
-    end)
+        B.lsp_dynamic_workspace_symbols({
+          path_display = { shorten = { len = 1, exclude = { 1, -1 } } },
+          layout_strategy = 'vertical'
+        })
+      end)
     vim.keymap.set('n', '<leader>mc', EXT.metals.commands)
 
     local previewers = require("telescope.previewers")
@@ -695,7 +704,7 @@ local TELESCOPE = {
             end
             return displayer {
               { p[#p], "TelescopeResultsNumber" },
-              { rest, "TelescopeResultsComment" },
+              { rest,  "TelescopeResultsComment" },
             }
           else
             return p[1]
@@ -783,6 +792,7 @@ local LSP_SAGA = {
     vim.keymap.set("v", "<leader>ca", vim.lsp.buf.code_action)
     vim.keymap.set("n", "<leader>lt", '<cmd>Lspsaga term_toggle<cr>')
     vim.keymap.set("n", "<leader>lo", '<cmd>Lspsaga outline<cr>')
+    vim.keymap.set("n", "<leader>li", '<cmd>Lspsaga incoming_calls<cr>')
   end
 }
 
@@ -894,6 +904,7 @@ local NEO_TREE = {
 
     vim.cmd([[nnoremap <C-a> :Neotree source=filesystem reveal=true position=left toggle=true<CR>]])
     vim.cmd([[nnoremap <C-t> :Neotree toggle=true<CR>]])
+    vim.keymap.set("n", "<leader>fn", ":Neotree current<CR>")
   end
 }
 
