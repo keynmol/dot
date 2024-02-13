@@ -651,6 +651,7 @@ local TELESCOPE = {
     vim.keymap.set('n', '<leader>hv', B.help_tags)
     vim.keymap.set('n', '<leader>ff', function() B.find_files({ layout_strategy = 'vertical' }) end)
     vim.keymap.set('n', '<leader>fg', function() B.git_files({ layout_strategy = 'vertical' }) end)
+    vim.keymap.set('n', '<leader>b', function() B.buffers({ layout_strategy = 'vertical' }) end)
     vim.keymap.set('n', '<leader>lg', function() B.live_grep({ layout_strategy = 'vertical' }) end)
     vim.keymap.set('n', 'gds', B.lsp_document_symbols)
     vim.keymap.set('n', 'gws',
