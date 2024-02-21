@@ -726,8 +726,8 @@ local TELESCOPE = {
 
 local VISUAL = {
   setup = function()
-    -- vim.cmd("colorscheme kanagawa")
-    vim.cmd("colorscheme catppuccin-latte")
+    vim.cmd("colorscheme kanagawa")
+    -- vim.cmd("colorscheme catppuccin-latte")
 
     vim.fn.sign_define("LspDiagnosticsSignError", { text = "▬" })
     vim.fn.sign_define("LspDiagnosticsSignWarning", { text = "▬" })
