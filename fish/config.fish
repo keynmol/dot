@@ -14,7 +14,7 @@ alias gd='git diff -u .'
 alias gcm='git commit -m'
 alias scli="scala-cli"
 alias repl="scala-cli repl"
-alias n="nvim ."
+alias n="nvim"
 alias j="cd (fd -d 2 -t d '' ~/projects | fzf)"
 
 

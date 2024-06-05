@@ -35,13 +35,11 @@ local PLUGINS = {
       "scalameta/nvim-metals",
       "sheerun/vim-polyglot",
       "tpope/vim-fugitive",
-      "tpope/vim-commentary",
       { "neandertech/nvim-langoustine", dir = "/Users/antonsviridov/projects/neandertech/nvim-langoustine" },
       { "catppuccin/nvim",              name = "catppuccin",                                               priority = 1000 },
       "rebelot/kanagawa.nvim",
       {
         'nvim-lualine/lualine.nvim',
-        dependencies = { 'kyazdani42/nvim-web-devicons' }
       },
       {
         "nvim-telescope/telescope.nvim",
@@ -560,6 +558,7 @@ local TELESCOPE = {
     vim.keymap.set('n', '<leader>hv', B.help_tags)
     vim.keymap.set('n', '<leader>ff', function() B.find_files({ layout_strategy = 'vertical' }) end)
     vim.keymap.set('n', '<leader>fg', function() B.git_files({ layout_strategy = 'vertical' }) end)
+    vim.keymap.set('n', '<leader>gb', function() B.git_branches({ layout_strategy = 'vertical' }) end)
     vim.keymap.set('n', '<leader>b', function() B.buffers({ layout_strategy = 'vertical' }) end)
     vim.keymap.set('n', '<leader>lg', function() B.live_grep({ layout_strategy = 'vertical' }) end)
     vim.keymap.set('n', 'gds', B.lsp_document_symbols)
@@ -693,6 +692,11 @@ local LSP_KEY_BINDINGS = {
 local KEY_BINDINGS = {
   setup = function()
     vim.keymap.set("n", "<leader>ht", function() vim.api.nvim_put({ '#' }, 'c', true, true) end)
+    vim.keymap.set("n", "<leader>gc", ":G commit<CR>")
+    vim.keymap.set("n", "<leader>gqw", ":G qwip<CR>")
+    vim.keymap.set("n", "<leader>gqc", ":G qcm<CR>")
+    vim.keymap.set("n", "<leader>gu", ":G up<CR>")
+    vim.keymap.set("n", "<leader>cs", ":copen<CR>")
   end
 }
 
