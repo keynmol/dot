@@ -5,7 +5,7 @@ if not vim.loop.fs_stat(lazypath) then
     "clone",
     "--filter=blob:none",
     "https://github.com/folke/lazy.nvim.git",
-    "--branch=stable", -- latest stable release
+    "--branch=main", -- latest stable release
     lazypath,
   })
 end
@@ -14,11 +14,6 @@ vim.opt.rtp:prepend(lazypath)
 local PLUGINS = {
   setup = function()
     return require("lazy").setup({
-      {
-        "ThePrimeagen/harpoon",
-        branch = "harpoon2",
-        dependencies = { "nvim-lua/plenary.nvim" }
-      },
       "kevinhwang91/nvim-bqf",
       {
         "nvim-neo-tree/neo-tree.nvim",
@@ -30,13 +25,23 @@ local PLUGINS = {
           -- "3rd/image.nvim", -- Optional image support in preview window: See `# Preview Mode` for more information
         }
       },
+      {
+        "folke/tokyonight.nvim",
+        lazy = false,
+        priority = 1000,
+        opts = {},
+      },
       "mfussenegger/nvim-dap",
       "neovim/nvim-lspconfig",
       "scalameta/nvim-metals",
       "sheerun/vim-polyglot",
       "tpope/vim-fugitive",
-      { "neandertech/nvim-langoustine", dir = "/Users/antonsviridov/projects/neandertech/nvim-langoustine" },
-      { "catppuccin/nvim",              name = "catppuccin",                                               priority = 1000 },
+      "tpope/vim-commentary",
+      { "neandertech/nvim-langoustine",
+        dit = "/Users/velvetbaldmime/projects/neandertech/nvim-langoustine",
+        config = function()
+          require('telescope').load_extension('langoustine')
+        end, },
       "rebelot/kanagawa.nvim",
       {
         'nvim-lualine/lualine.nvim',
@@ -73,28 +78,22 @@ local PLUGINS = {
         'nvim-treesitter/nvim-treesitter-context',
         config = function()
           require 'treesitter-context'.setup {
-            enable = true,           -- Enable this plugin (Can be enabled/disabled later via commands)
-            max_lines = 5,           -- How many lines the window should span. Values <= 0 mean no limit.
-            min_window_height = 50,  -- Minimum editor window height to enable context. Values <= 0 mean no limit.
+            enable = true, -- Enable this plugin (Can be enabled/disabled later via commands)
+            max_lines = 5, -- How many lines the window should span. Values <= 0 mean no limit.
+            min_window_height = 50, -- Minimum editor window height to enable context. Values <= 0 mean no limit.
             line_numbers = true,
             multiline_threshold = 1, -- Maximum number of lines to show for a single context
-            trim_scope = 'outer',    -- Which context lines to discard if `max_lines` is exceeded. Choices: 'inner', 'outer'
-            mode = 'cursor',         -- Line used to calculate context. Choices: 'cursor', 'topline'
+            trim_scope = 'outer', -- Which context lines to discard if `max_lines` is exceeded. Choices: 'inner', 'outer'
+            mode = 'cursor', -- Line used to calculate context. Choices: 'cursor', 'topline'
             -- Separator between context and content. Should be a single character string, like '-'.
             -- When separator is set, the context will only show up when there are at least 2 lines above cursorline.
             separator = nil,
-            zindex = 20,     -- The Z-index of the context window
+            zindex = 20, -- The Z-index of the context window
             on_attach = nil, -- (fun(buf: integer): boolean) return false to disable attaching
           }
         end
       },
       'nvim-treesitter/playground',
-      {
-        "https://git.sr.ht/~whynothugo/lsp_lines.nvim",
-        config = function()
-          require("lsp_lines").setup()
-        end,
-      },
       {
         "hrsh7th/nvim-cmp",
         dependencies = {
@@ -106,54 +105,32 @@ local PLUGINS = {
           { "hrsh7th/vim-vsnip-integ" },
         },
       },
-      { 'sourcegraph/sg.nvim' }
-
-
     })
   end
 }
-
--- local PLUGINS = {
---   setup = function()
---     return require("lazy").setup({
-
---       use { 'sourcegraph/sg.nvim', run = 'nvim -l build/init.lua' }
-
---       use({
---         'nvimdev/lspsaga.nvim',
---         after = 'nvim-lspconfig',
---         config = function()
---           require('lspsaga').setup({})
---         end,
---       })
-
---       use 'neandertech/nvim-langoustine'
---     end)
---   end
--- }
 
 local LUALINE = {
   setup = function()
     require('lualine').setup(
       {
-        sections = {
-          lualine_a = { 'mode' },
-          lualine_b = { 'branch', 'diff' },
-          lualine_c = { 'filename', {
-            'diagnostics',
-            sources = { 'nvim_diagnostic' },
-            symbols = { error = ' ', warn = ' ', info = ' ' },
-            diagnostics_color = {
-              color_error = { fg = '#ec5f67' },
-              color_warn = { fg = '#ECBE7B' },
-              color_info = { fg = '#008080' },
-            }
-          } },
-          lualine_x = { 'filetype' },
-          lualine_y = { 'progress' },
-          lualine_z = { 'location' }
-        }
+      sections = {
+        lualine_a = { 'mode' },
+        lualine_b = { 'branch', 'diff' },
+        lualine_c = { 'filename', {
+          'diagnostics',
+          sources = { 'nvim_diagnostic' },
+          symbols = { error = ' ', warn = ' ', info = ' ' },
+          diagnostics_color = {
+            color_error = { fg = '#ec5f67' },
+            color_warn = { fg = '#ECBE7B' },
+            color_info = { fg = '#008080' },
+          }
+        } },
+        lualine_x = { 'filetype' },
+        lualine_y = { 'progress' },
+        lualine_z = { 'location' }
       }
+    }
     )
   end
 }
@@ -217,8 +194,8 @@ local CMP = {
       sorting = {
         priority_weight = 2,
         comparators = {
-          compare.offset,    -- we still want offset to be higher to order after 3rd letter
-          compare.score,     -- same as above
+          compare.offset, -- we still want offset to be higher to order after 3rd letter
+          compare.score, -- same as above
           compare.sort_text, -- add higher precedence for sort_text, it must be above `kind`
           compare.recently_used,
           compare.kind,
@@ -253,6 +230,10 @@ local METALS = {
     vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, { border = "single" })
 
     Metals_config = require("metals").bare_config()
+
+    if os.getenv("LANGOUSTINE_METALS") then
+      Metals_config.cmd = { "langoustine-tracer", "trace", "--", os.getenv("LANGOUSTINE_METALS") }
+    end
     Metals_config.settings = {
       showImplicitArguments = true,
       showInferredType = true,
@@ -262,8 +243,9 @@ local METALS = {
         "akka.stream.javadsl",
       },
       serverVersion = 'latest.snapshot',
-      enableSemanticHighlighting = true
+      enableSemanticHighlighting = false
     }
+    Metals_config.find_root_dir_max_project_nesting = 0
 
     Metals_config.init_options.statusBarProvider = "off"
     Metals_config.handlers["textDocument/publishDiagnostics"] = shared_diagnostic_settings
@@ -320,6 +302,7 @@ local METALS = {
 local local_overrides = FUNCTIONS.prequire("locals")
 
 
+
 local overriden = function(key, default)
   if not local_overrides[key] then
     return default
@@ -353,13 +336,13 @@ local TREE_SITTER = {
       -- ensure_installed = { "c", "lua", "vim", "vimdoc", "query", "scala", "rust", "go", "cpp" },
       sync_install = false, -- install languages synchronously (only applied to `ensure_installed`)
       highlight = {
-        enable = true,      -- false will disable the whole extension
+        enable = true, -- false will disable the whole extension
         additional_vim_regex_highlighting = false,
       },
-      indent = {
-        enable = true
+      -- indent = {
+      --   enable = true
 
-      },
+      -- },
       keymaps = {
         init_selection = "gnn", -- set to `false` to disable one of the mappings
         node_incremental = "grn",
@@ -385,6 +368,24 @@ local LSP_SERVERS = {
     require 'lspconfig'.tsserver.setup {}
     require 'lspconfig'.rust_analyzer.setup {}
     require 'lspconfig'.jsonls.setup {}
+
+    require 'lspconfig'.tailwindcss.setup = {
+      -- exclude a filetype from the default_config
+      filetypes_exclude = { "markdown" },
+      -- add additional filetypes to the default_config
+      filetypes_include = { "scala" },
+      -- to fully override the default_config, change the below
+      -- filetypes = {}
+      settings = {
+        tailwindCSS = {
+          experimental = {
+            classRegex = {
+              "[cls|className]\\s\\:\\=\\s\"([^\"]*)"
+            }
+          },
+        }
+      } }
+
     -- require 'lspconfig'.sourcekit.setup {}
     local capabilities = vim.lsp.protocol.make_client_capabilities()
     capabilities.textDocument.completion.completionItem.snippetSupport = true
@@ -489,14 +490,16 @@ local LSP_SERVERS = {
         },
       },
     }
+
     if local_overrides.quickmaffs_lsp then
+      local cmd = add_tracing("quickmaffs", { local_overrides.quickmaffs_lsp })
       vim.api.nvim_create_autocmd("FileType", {
         group = lsp,
         pattern = "quickmaffs",
         callback = function()
           vim.lsp.start({
             name = "Quickmaffs",
-            cmd = add_tracing("quickmaffs", { local_overrides.quickmaffs_lsp }),
+            cmd = cmd,
           })
         end,
       })
@@ -561,14 +564,14 @@ local TELESCOPE = {
     vim.keymap.set('n', '<leader>gb', function() B.git_branches({ layout_strategy = 'vertical' }) end)
     vim.keymap.set('n', '<leader>b', function() B.buffers({ layout_strategy = 'vertical' }) end)
     vim.keymap.set('n', '<leader>lg', function() B.live_grep({ layout_strategy = 'vertical' }) end)
-    vim.keymap.set('n', 'gds', B.lsp_document_symbols)
-    vim.keymap.set('n', 'gws',
+    vim.keymap.set('n', 'gs', B.lsp_document_symbols)
+    vim.keymap.set('n', 'gS',
       function()
-        B.lsp_dynamic_workspace_symbols({
-          path_display = { shorten = { len = 1, exclude = { 1, -1 } } },
-          layout_strategy = 'vertical'
-        })
-      end)
+      B.lsp_dynamic_workspace_symbols({
+        path_display = { shorten = { len = 1, exclude = { 1, -1 } } },
+        layout_strategy = 'vertical'
+      })
+    end)
     vim.keymap.set('n', '<leader>mc', EXT.metals.commands)
 
     local previewers = require("telescope.previewers")
@@ -611,7 +614,7 @@ local TELESCOPE = {
             end
             return displayer {
               { p[#p], "TelescopeResultsNumber" },
-              { rest,  "TelescopeResultsComment" },
+              { rest, "TelescopeResultsComment" },
             }
           else
             return p[1]
@@ -620,11 +623,11 @@ local TELESCOPE = {
         -- file_previewer = require("telescope.previewers").vim_buffer_cat.new,
         -- grep_previewer = require("telescope.previewers").vim_buffer_vimgrep.new,
       },
-      -- extensions = {
-      --   langoustine = {
-      --     command_prefix = { "langoustine-tracer-dev", "trace" }
-      --   }
-      -- }
+      extensions = {
+        langoustine = {
+          command_prefix = { "langoustine-tracer-dev", "trace" }
+        }
+      }
     })
 
     require("telescope").load_extension("fzy_native")
@@ -634,7 +637,7 @@ local TELESCOPE = {
 
 local VISUAL = {
   setup = function()
-    vim.cmd("colorscheme kanagawa")
+    vim.cmd("colorscheme tokyonight-night")
     -- vim.cmd("colorscheme catppuccin-latte")
 
     vim.fn.sign_define("LspDiagnosticsSignError", { text = "▬" })
@@ -667,6 +670,7 @@ local LSP_KEY_BINDINGS = {
   setup = function()
     vim.keymap.set("n", "<leader>sf", function() vim.lsp.buf.format { async = true } end)
     vim.keymap.set("n", "gd", vim.lsp.buf.definition)
+    vim.keymap.set("n", "gD", vim.lsp.buf.type_definition)
     vim.keymap.set("n", "K", vim.lsp.buf.hover)
     vim.keymap.set("n", "gi", vim.lsp.buf.implementation)
     vim.keymap.set("n", "gr", vim.lsp.buf.references)
@@ -774,42 +778,7 @@ local INDENT_BLANKLINE = {
   end
 }
 
--- local HARPOON = {
---   setup = function()
---     local harpoon = require("harpoon")
 
---     -- REQUIRED
---     harpoon:setup()
---     -- REQUIRED
---     -- lua require("harpoon.mark").add_file()
---     vim.keymap.set("n", "<leader>hm", function() harpoon:list():append() end)
---     local conf = require("telescope.config").values
---     local function toggle_telescope(harpoon_files)
---       local file_paths = {}
---       for _, item in ipairs(harpoon_files.items) do
---         table.insert(file_paths, item.value)
---       end
-
---       require("telescope.pickers").new({}, {
---         prompt_title = "Harpoon",
---         finder = require("telescope.finders").new_table({
---           results = file_paths,
---         }),
---         previewer = conf.file_previewer({}),
---         sorter = conf.generic_sorter({}),
---       }):find()
---     end
-
---     vim.keymap.set("n", "<leader>ht", function() toggle_telescope(harpoon:list()) end,
---       { desc = "Open harpoon window" })
---   end
--- }
-
-local SOURCEGRAPH = {
-  setup = function()
-    require("sg").setup()
-  end
-}
 local NEO_TREE = {
   setup = function()
     require("neo-tree").setup({
@@ -830,7 +799,6 @@ OPTIONS.setup()
 VISUAL.setup()
 LSP_SERVERS.setup()
 TREE_SITTER.setup()
--- NVIM_TREE.setup()
 NEO_TREE.setup()
 TELESCOPE.setup()
 METALS.setup()
@@ -839,7 +807,5 @@ LSP_KEY_BINDINGS.setup()
 CMP.setup()
 LUALINE.setup()
 KEY_BINDINGS.setup()
--- HARPOON.setup()
 LSP_SAGA.setup()
 INDENT_BLANKLINE.setup()
-SOURCEGRAPH.setup()
