@@ -34,7 +34,7 @@ local PLUGINS = {
       "mfussenegger/nvim-dap",
       "neovim/nvim-lspconfig",
       "scalameta/nvim-metals",
-      "sheerun/vim-polyglot",
+      -- "sheerun/vim-polyglot",
       "tpope/vim-fugitive",
       "tpope/vim-commentary",
       { "neandertech/nvim-langoustine",
@@ -62,16 +62,19 @@ local PLUGINS = {
       },
       {
         "iamcco/markdown-preview.nvim",
-        build = "cd app && npm install",
-        config = function() vim.g.mkdp_filetypes = { "markdown" } end,
+        cmd = { "MarkdownPreviewToggle", "MarkdownPreview", "MarkdownPreviewStop" },
+        build = "cd app && npm install && git restore .",
+        init = function()
+          vim.g.mkdp_filetypes = { "markdown" }
+        end,
         ft = { "markdown" },
       },
-      {
-        'nvimdev/lspsaga.nvim',
-        config = function()
-          require('lspsaga').setup({})
-        end,
-      },
+      -- {
+      --   'nvimdev/lspsaga.nvim',
+      --   config = function()
+      --     require('lspsaga').setup({})
+      --   end,
+      -- },
       'lukas-reineke/indent-blankline.nvim',
       'nvim-treesitter/nvim-treesitter',
       {
@@ -365,7 +368,7 @@ local LSP_SERVERS = {
     require 'lspconfig'.html.setup {}
     require 'lspconfig'.crystalline.setup {}
     require 'lspconfig'.gopls.setup {}
-    require 'lspconfig'.tsserver.setup {}
+    require 'lspconfig'.ts_lts.setup {}
     require 'lspconfig'.rust_analyzer.setup {}
     require 'lspconfig'.jsonls.setup {}
 
@@ -457,8 +460,8 @@ local LSP_SERVERS = {
         local path = vim.fs.find({ "smithy-build.json" })
         vim.lsp.start({
           name = "Smithy LSP",
-          cmd = add_tracing("smithy",
-            { 'cs', 'launch', 'com.disneystreaming.smithy:smithy-language-server:latest.release', '--', '0' }),
+          cmd = -- add_tracing("smithy",
+            { 'cs', 'launch', '-D', 'neovim.client=1', 'com.disneystreaming.smithy:smithy-language-server:0.0.31', '--jvm', '21', '-M', 'software.amazon.smithy.lsp.Main', '--', '0' }, --),
           root_dir = vim.fs.dirname(path[1])
         })
       end,
