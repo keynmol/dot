@@ -32,7 +32,27 @@ local PLUGINS = {
         opts = {},
       },
       "mfussenegger/nvim-dap",
-      "neovim/nvim-lspconfig",
+      {
+        'neovim/nvim-lspconfig',
+        dependencies = { 'saghen/blink.cmp' },
+
+        -- example using `opts` for defining servers
+        opts = {
+          servers = {
+            lua_ls = {}
+          }
+        },
+        config = function(_, opts)
+          local lspconfig = require('lspconfig')
+          for server, config in pairs(opts.servers) do
+            -- passing config.capabilities to blink.cmp merges with the capabilities in your
+            -- `opts[server].capabilities, if you've defined it
+            config.capabilities = require('blink.cmp').get_lsp_capabilities(config.capabilities)
+            lspconfig[server].setup(config)
+          end
+        end
+
+      },
       "scalameta/nvim-metals",
       -- "sheerun/vim-polyglot",
       "tpope/vim-fugitive",
@@ -98,16 +118,50 @@ local PLUGINS = {
       },
       'nvim-treesitter/playground',
       {
-        "hrsh7th/nvim-cmp",
-        dependencies = {
-          { "hrsh7th/cmp-buffer" },
-          { "hrsh7th/cmp-nvim-lsp" },
-          { "hrsh7th/cmp-path" },
-          { "hrsh7th/cmp-vsnip" },
-          { "hrsh7th/vim-vsnip" },
-          { "hrsh7th/vim-vsnip-integ" },
+        'saghen/blink.cmp',
+        lazy = false, -- lazy loading handled internally
+        -- optional: provides snippets for the snippet source
+        dependencies = 'rafamadriz/friendly-snippets',
+
+        -- use a release tag to download pre-built binaries
+        version = 'v0.*',
+        -- OR build from source, requires nightly: https://rust-lang.github.io/rustup/concepts/channels.html#working-with-nightly-rust
+        -- build = 'cargo build --release',
+        -- If you use nix, you can build from source using latest nightly rust with:
+        -- build = 'nix run .#build-plugin',
+
+        ---@module 'blink.cmp'
+        ---@type blink.cmp.Config
+        opts = {
+          keymap = { preset = 'enter' },
+
+          appearance = {
+            use_nvim_cmp_as_default = true,
+            -- Set to 'mono' for 'Nerd Font Mono' or 'normal' for 'Nerd Font'
+            -- Adjusts spacing to ensure icons are aligned
+            nerd_font_variant = 'mono'
+          },
+          completion = {
+            menu = { auto_show = function(ctx) return ctx.mode ~= 'cmdline' end }
+          },
+
+          signature = { enabled = true }
         },
+        -- allows extending the providers array elsewhere in your config
+        -- without having to redefine it
+        opts_extend = { "sources.default" }
       },
+      -- {
+      --   "hrsh7th/nvim-cmp",
+      --   dependencies = {
+      --     { "hrsh7th/cmp-buffer" },
+      --     { "hrsh7th/cmp-nvim-lsp" },
+      --     { "hrsh7th/cmp-path" },
+      --     { "hrsh7th/cmp-vsnip" },
+      --     { "hrsh7th/vim-vsnip" },
+      --     { "hrsh7th/vim-vsnip-integ" },
+      --   },
+      -- },
     })
   end
 }
@@ -158,61 +212,61 @@ local FUNCTIONS = {
 
 local CMP = {
   setup = function()
-    local cmp = require("cmp")
-    local compare = require 'cmp.config.compare'
-    cmp.setup({
-      snippet = {
-        expand = function(args)
-          vim.fn["vsnip#anonymous"](args.body) -- For `vsnip` users.
-        end,
-      },
-      sources = {
-        { name = "nvim_lsp", priority = 100 },
-        { name = "buffer" },
-        { name = "path" },
-        -- { name = "vsnip" },
-      },
-      window = {
-        completion = cmp.config.window.bordered(),
-        -- documentation = cmp.config.window.bordered(),
-      },
-      mapping = {
-        ["<CR>"] = cmp.mapping.confirm({ select = true }),
-        ["<Down>"] = function(fallback)
-          if cmp.visible() then
-            cmp.select_next_item()
-          else
-            fallback()
-          end
-        end,
-        ["<Up>"] = function(fallback)
-          if cmp.visible() then
-            cmp.select_prev_item()
-          else
-            fallback()
-          end
-        end,
-      },
-      preselect = cmp.PreselectMode.None, -- disable preselection
-      sorting = {
-        priority_weight = 2,
-        comparators = {
-          compare.offset, -- we still want offset to be higher to order after 3rd letter
-          compare.score, -- same as above
-          compare.sort_text, -- add higher precedence for sort_text, it must be above `kind`
-          compare.recently_used,
-          compare.kind,
-          compare.length,
-          compare.order,
-        },
-      },
-      -- if you want to add preselection you have to set completeopt to new values
-      completion = {
-        -- completeopt = 'menu,menuone,noselect', <---- this is default value,
-        completeopt = 'menu,menuone', -- remove noselect
-      },
+    -- local cmp = require("cmp")
+    -- local compare = require 'cmp.config.compare'
+    -- cmp.setup({
+    --   snippet = {
+    --     expand = function(args)
+    --       vim.fn["vsnip#anonymous"](args.body) -- For `vsnip` users.
+    --     end,
+    --   },
+    --   sources = {
+    --     { name = "nvim_lsp", priority = 100 },
+    --     { name = "buffer" },
+    --     { name = "path" },
+    --     -- { name = "vsnip" },
+    --   },
+    --   window = {
+    --     completion = cmp.config.window.bordered(),
+    --     -- documentation = cmp.config.window.bordered(),
+    --   },
+    --   mapping = {
+    --     ["<CR>"] = cmp.mapping.confirm({ select = true }),
+    --     ["<Down>"] = function(fallback)
+    --       if cmp.visible() then
+    --         cmp.select_next_item()
+    --       else
+    --         fallback()
+    --       end
+    --     end,
+    --     ["<Up>"] = function(fallback)
+    --       if cmp.visible() then
+    --         cmp.select_prev_item()
+    --       else
+    --         fallback()
+    --       end
+    --     end,
+    --   },
+    --   preselect = cmp.PreselectMode.None, -- disable preselection
+    --   sorting = {
+    --     priority_weight = 2,
+    --     comparators = {
+    --       compare.offset, -- we still want offset to be higher to order after 3rd letter
+    --       compare.score, -- same as above
+    --       compare.sort_text, -- add higher precedence for sort_text, it must be above `kind`
+    --       compare.recently_used,
+    --       compare.kind,
+    --       compare.length,
+    --       compare.order,
+    --     },
+    --   },
+    --   -- if you want to add preselection you have to set completeopt to new values
+    --   completion = {
+    --     -- completeopt = 'menu,menuone,noselect', <---- this is default value,
+    --     completeopt = 'menu,menuone', -- remove noselect
+    --   },
 
-    })
+    -- })
   end
 }
 
@@ -221,13 +275,13 @@ local METALS = {
   setup = function()
     local shared_diagnostic_settings = vim.lsp.with(vim.lsp.diagnostic.on_publish_diagnostics, { virtual_text = false })
     local lsp_config = require("lspconfig")
-    local capabilities = require("cmp_nvim_lsp").default_capabilities()
+    -- local capabilities = require("cmp_nvim_lsp").default_capabilities()
 
     lsp_config.util.default_config = vim.tbl_extend("force", lsp_config.util.default_config, {
       handlers = {
         ["textDocument/publishDiagnostics"] = shared_diagnostic_settings,
       },
-      capabilities = capabilities,
+      -- capabilities = capabilities,
     })
 
     vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, { border = "single" })
@@ -246,7 +300,8 @@ local METALS = {
         "akka.stream.javadsl",
       },
       serverVersion = 'latest.snapshot',
-      enableSemanticHighlighting = false
+      enableSemanticHighlighting = false,
+      defaultBspToBuildTool = true
     }
     Metals_config.find_root_dir_max_project_nesting = 0
 
@@ -368,7 +423,7 @@ local LSP_SERVERS = {
     require 'lspconfig'.html.setup {}
     require 'lspconfig'.crystalline.setup {}
     require 'lspconfig'.gopls.setup {}
-    require 'lspconfig'.ts_lts.setup {}
+    require 'lspconfig'.ts_ls.setup {}
     require 'lspconfig'.rust_analyzer.setup {}
     require 'lspconfig'.jsonls.setup {}
 
@@ -461,7 +516,7 @@ local LSP_SERVERS = {
         vim.lsp.start({
           name = "Smithy LSP",
           cmd = -- add_tracing("smithy",
-            { 'cs', 'launch', '-D', 'neovim.client=1', 'com.disneystreaming.smithy:smithy-language-server:0.0.31', '--jvm', '21', '-M', 'software.amazon.smithy.lsp.Main', '--', '0' }, --),
+          { 'cs', 'launch', '-D', 'neovim.client=1', 'com.disneystreaming.smithy:smithy-language-server:0.0.31', '--jvm', '21', '-M', 'software.amazon.smithy.lsp.Main', '--', '0' }, --),
           root_dir = vim.fs.dirname(path[1])
         })
       end,
