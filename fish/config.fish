@@ -62,6 +62,11 @@ function start -a repo_url
     nvim . 
 end
 
+function new_project -a repo_url
+    gh repo create $repo_url --private &&\
+    start $repo_url
+end
+
 
 # The next line updates PATH for the Google Cloud SDK.
 if [ -f "$HOME/.tools/google-cloud-sdk/path.fish.inc" ]; . "$HOME/.tools/google-cloud-sdk/path.fish.inc"; end
